@@ -15,5 +15,12 @@ Contents
 
 .. toctree::
 
-   usage
-   api
+   introduction
+   theory
+   installation
+   basics
+   symmetries_and_dimensions
+   waveguides
+   reflection_and_refraction
+   nonlinear_phenomena
+   applied_demo
