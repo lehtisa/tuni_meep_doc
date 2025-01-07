@@ -1,9 +1,12 @@
-.. autosummary::
-    :toctree: generated
+Introduction
+============
 
-    Introduction
-    ===================================
+.. _introduction:
 
-    .. note::
+Introduction
+============
+This is the introduction.
 
-   This is just a test.
+.. note::
+
+    This is just a test.
