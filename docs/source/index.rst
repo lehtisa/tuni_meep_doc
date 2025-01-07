@@ -1,17 +1,14 @@
-Welcome to Lumache's documentation!
+Welcome to MEEP!
 ===================================
 
-**Lumache** (/lu'make/) is a Python library for cooks and food lovers
-that creates recipes mixing random ingredients.
-It pulls data from the `Open Food Facts database <https://world.openfoodfacts.org/>`_
-and offers a *simple* and *intuitive* API.
+MIT Electromagnetic Equation Propagation (MEEP) uses the finite-difference time-domain (FDTD) method to make simulations of electromagnetic phenomenon. MEEP simulations evolve Maxwell’s equations by discrete time steps. With this methodm we can essentially get exact results as we make the time steps smaller and smaller.
 
 Check out the :doc:`usage` section for further information, including
 how to :ref:`installation` the project.
 
 .. note::
 
-   This project is under active development.
+   This project is under active development. 
 
 Contents
 --------
