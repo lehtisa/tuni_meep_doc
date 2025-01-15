@@ -8,7 +8,7 @@ Here we provide a basic guide to install Meep on your computer running Windows o
 First, we provide a table where you can look which steps are necessary for your operating system. 
 
 .. list-table:: Installation steps on Windows and MacOS
-   :widths: 25 25 50
+   :widths: 20 10 10
    :header-rows: 1
 
    * - Installation step
@@ -21,6 +21,8 @@ First, we provide a table where you can look which steps are necessary for your 
      - Yes
      - Yes
    * - Pymeep 
+     - Yes
+     - Yes
 
 
 Installation of Windows Subsystem for Linux
@@ -59,7 +61,6 @@ Next, you should obtain the the installer for your system:
 * On MacOS (Apple Silicon): ``curl https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh -o ~/miniconda3/miniconda.sh``
 * On MacOS (Intel): ``curl https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -o ~/miniconda3/miniconda.sh``
 
-
 Once this has finished running, you can perform the installation by the command
     ``bash miniconda.sh -b -u -p ~/miniconda3/miniconda.sh``
 
@@ -68,7 +69,6 @@ Once this has finished running, you can perform the installation by the command
 
 Next we add the location of Miniconda to the variable PATH so that we can use 
 the installed Miniconda later. This is done by the commmand
-
     ``export PATH=~/miniconda3/bin:$PATH``
 
 
