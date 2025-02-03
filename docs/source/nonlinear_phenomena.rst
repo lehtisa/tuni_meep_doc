@@ -53,10 +53,11 @@ where we have defined an effective susceptibility :math:`\chi_{\mathrm{eff}}=\ch
 Demo 1: Second Harmonic Generation
 ==================================
 
-This demo provides an example a simulation of nonlinear processes in MEEP with second harmonic generation (SHG). SHG is a second order nonlinear process, where light with frequency :math:`\omega` is injected to a material with a second order nonlinear susceptibility :math:`\chi^{(2)}`, and new light with frequency $2\omega$ is generated. We have used the `example simulation on third harmonic generation <https://meep.readthedocs.io/en/latest/Python_Tutorials/Third_Harmonic_Generation/>`_ from the official documentation as a starting point for this demo, but we will expand on it significantly by studying the evolution of the second harmonic field during propagation under different phase matching conditions.
+This demo provides an example a simulation of nonlinear processes in MEEP with second harmonic generation (SHG). It is a second order nonlinear process, where light with frequency :math:`\omega` is injected to a material with a second order nonlinear susceptibility :math:`\chi^{(2)}`, and new light with frequency :math:`\omega` is generated. We have used the `example simulation on third harmonic generation <https://meep.readthedocs.io/en/latest/Python_Tutorials/Third_Harmonic_Generation/>`_ from the official documentation as a starting point for this demo, but we will expand on it significantly by studying the evolution of the second harmonic field during propagation under different phase matching conditions.
 
 This demo will discuss the following practical matters of simulation:
-- Materials with :math:`\chi^{(2)}`` nonlinearity
+
+- Materials with :math:`\chi^{(2)}` nonlinearity
 - Units with second order nonlinearities
 - Materials with predefined dispersion using `meep.materials library <https://meep.readthedocs.io/en/latest/Materials/>`_
 - Resolution convergence analysis
@@ -65,7 +66,7 @@ This demo will discuss the following practical matters of simulation:
 SHG without Dispersion: Perfect Phase Patching
 ----------------------------------------------
 
-First, we will simulate SHG without the presence of dispersion (same refractrive index for all frequencies). The desired simulation behaviour is presented schematically below TODO. We want to place a pump source with wavelength 1064 nm in a :math:`\chi^{(2)}` material, and then measure the output spectrum after propagtion in a 1D simulation. We will use lithium niobate (LiNbo\:sub:3\) as the nonlinear material, which is a common material in second order nonlinear optics applications.
+First, we will simulate SHG without the presence of dispersion (same refractrive index for all frequencies). The desired simulation behaviour is presented schematically below TODO. We want to place a pump source with wavelength 1064 nm in a :math:`\chi^{(2)}` material, and then measure the output spectrum after propagtion in a 1D simulation. We will use lithium niobate (LiNbo\ :sub:`3`\ ) as the nonlinear material, which is a common material in second order nonlinear optics applications.
 
 First, we import the required libraries and define parameters:
 
@@ -87,7 +88,7 @@ First, we import the required libraries and define parameters:
    eps = LiNbO3.epsilon(f_pump)[0,0]
    n0 = np.sqrt(eps)  # refractive index
 
-Next, we define a simulation function that propagates the input pulse in a :math:`\chi^{(2)}` medium and measures the output spectrum, as described in the above figure. A nonlinear optical simulation can be implemented by simply using a material with nonzero nonlinear susceptibility. We are simulating the case without dispersion, so we are using a constant refractive index that corresponds to the refractive index of LiNbo\:sub:3\ at the pump frequency.
+Next, we define a simulation function that propagates the input pulse in a :math:`\chi^{(2)}` medium and measures the output spectrum, as described in the above figure. A nonlinear optical simulation can be implemented by simply using a material with nonzero nonlinear susceptibility. We are simulating the case without dispersion, so we are using a constant refractive index that corresponds to the refractive index of LiNbo\ :sub:`2`\  at the pump frequency.
 
 SHG with Dispersion: Phase Patching Problem
 -------------------------------------------
