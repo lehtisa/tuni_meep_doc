@@ -185,8 +185,10 @@ We can now run the simulation. We will first obtain a reference power spectrum w
 .. code-block:: python
 
    res = 256
-   reference_trans_flux, freqs = chi2_propagation(chi2=0, f_pump=f_pump, amplitude=source_amplitude, resolution=res)
-   trans_flux, freqs = chi2_propagation(chi2=chi2, f_pump=f_pump, amplitude=source_amplitude, resolution=res)
+   reference_trans_flux, freqs = chi2_propagation(chi2=0, f_pump=f_pump,
+                                     amplitude=source_amplitude, resolution=res)
+   trans_flux, freqs = chi2_propagation(chi2=chi2, f_pump=f_pump,
+                                        amplitude=source_amplitude, resolution=res)
 
 The results of the simulation are then plotted as follows:
 
@@ -198,8 +200,10 @@ The results of the simulation are then plotted as follows:
    freqs_SI = freqs * c/a
 
    norm = np.max(reference_trans_flux)
-   ax.semilogy(freqs_SI*1e-12, trans_flux/norm, label=fr"$\chi^{{(2)}}={chi2_E_prod}/E_{{\text{{pump}}}}$")
-   ax.semilogy(freqs_SI*1e-12, reference_trans_flux/norm, linestyle="--", label=rf"$\chi^{(2)}$={0}")
+   ax.semilogy(freqs_SI*1e-12, trans_flux/norm,
+               label=fr"$\chi^{{(2)}}={chi2_E_prod}/E_{{\text{{pump}}}}$")
+   ax.semilogy(freqs_SI*1e-12, reference_trans_flux/norm, linestyle="--",
+               label=rf"$\chi^{(2)}$={0}")
    ax.set_xlabel("frequency (THz)")
    ax.set_ylabel("transmitted power (a.u.)")
    ax.set_xlim([freqs_SI[0]*1e-12, freqs_SI[-1]*1e-12])
@@ -207,9 +211,9 @@ The results of the simulation are then plotted as follows:
    ax.legend()
    ax.grid(True)
 
-.. figure:: nonlinear_phenomena_figures/shg_spectrum.png
+.. figure:: nonlinear_phenomena_figures/shg_spectrum.pdf
    :alt: test text
-   :width: 80%
+   :width: 90%
    :align: center
 
 SHG with Dispersion: Phase Patching Problem
