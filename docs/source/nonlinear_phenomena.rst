@@ -216,6 +216,7 @@ The results of the simulation are then plotted as follows:
    :width: 90%
    :align: center
 
+
 We can observe that without nonlinearities, there is only a single peak corresponding to the pump source, which is the expected result. However, when the simulation is performed in a medium with a nonzero :math:`\chi^{(2)}`, new frequencies are created at twice and three times the initial frequency! The peak at twice the initial frequency is caused by SHG, and the peak at three times the initial frequency is a result from a sum frequency generation process between the pump and SHG fields. In fact, if we extended the measured frequency range, we would see peaks of decreasing power at every integer multiple of the initial frequency resulting from frequency mixing processes of the newly generated fields.
 
 We have chosen the parameters such that the SHG field has more than two orders of magnitude less power than the pump field. This means that we can safely use the undepleted pump assumption, which makes our treatment slightly simpler.
@@ -298,13 +299,13 @@ We will compare the MEEP simulation to the analytical expression predicted by th
 
 .. math::
 
-   I_2(z)= \frac{\omega^2 ( \chi^{(2)} )^2}{2 \varepsilon_0 n_0^3 c^3} I_1^2 z^2,
+   I_2(z)= \frac{\omega_1^2 ( \chi^{(2)} )^2}{2 \varepsilon_0 n_0^3 c^3} I_1^2 z^2,
 
-where :math:`\omega` and :math:`I_1` are the pump frequency and intensity, :math:`n_0` is the refractive index, and :math:`z` is the propagation distance. The SHG intensity is expected to grow quadratically as a function propagation distance when no dispersion is present. `It is recommended to use real :math:`E`-fields in MEEP simulations involving nonlinearities <https://meep.readthedocs.io/en/latest/Materials/#nonlinearity>`_, for which the relation :math:`I=\frac{1}{2} \varepsilon_0 n_0 c E^2` holds. Using this relation, the above equation can be written as
+where :math:`\omega_1` and :math:`I_1` are the pump frequency and intensity, :math:`n_0` is the refractive index, and :math:`z` is the propagation distance. The SHG intensity is expected to grow quadratically as a function propagation distance when no dispersion is present. `It is recommended to use real E-fields in MEEP simulations involving nonlinearities <https://meep.readthedocs.io/en/latest/Materials/#nonlinearity>`_, for which the relation :math:`I=\frac{1}{2} \varepsilon_0 n_0 c E^2` holds. Using this relation, the above equation can be written as
 
 .. math::
 
-   \frac{I_2}{I_1} = \frac{P_2}{P_1} = \frac{\omega^2}{4 n_0^2 c^2} \left(\chi^{(2)}E\right)^2 z^2,
+   \frac{I_2}{I_1} = \frac{P_2}{P_1} = \frac{\omega_1^2}{4 n_0^2 c^2} \left(\chi^{(2)}E\right)^2 z^2,
 
 where P is the optical power. The equation is now in a form where it is convenient to convert between MEEP units and SI units; the ratio on the left side is dimensionless so it's value is independent of units, and the right side features the dimensionless product :math:`\chi^{(2)}E` whose value is also the same in MEEP units and SI units.
 
@@ -337,6 +338,7 @@ We can now plot a comparison of the MEEP simulation results and theory predictio
    :alt: test text
    :width: 90%
    :align: center
+
 
 We can see that at a resolution of 256, the MEEP simulation result has converged to a nice agreement between the theoretical curve. The SHG power is increasing quadratically as a function of propagation distance. Still, the agreement between MEEP and theory is not perfect, which could be caused by the fact we are assuming in the theory that the pump is not losing any energy to the SHG field. While this assumption quite accurate with our chosen parameters, as seen from figure of the spectral powers, the assumption is not completely accurate.
 
