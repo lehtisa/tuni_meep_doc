@@ -64,7 +64,7 @@ This demo will discuss the following practical matters of simulation:
 
 The code used to produce this demo is available at TODO.
 
-SHG without Dispersion: Perfect Phase Patching
+SHG without Dispersion: Perfect Phase Matching
 ----------------------------------------------
 
 First, we will simulate SHG without the presence of dispersion (same refractrive index for all frequencies). The desired simulation behaviour is presented schematically below TODO. We want to place a pump source with wavelength 1064 nm in a :math:`\chi^{(2)}` material, and then measure the output spectrum after propagtion in a 1D simulation. We will use lithium niobate (LiNbO\ :sub:`3`\ ) as the nonlinear material, which is a common material in second order nonlinear optics applications.
@@ -153,7 +153,7 @@ Next, we define a simulation function that propagates the input pulse in a :math
       )
       
       # run for sufficiently long such that the pulse has fully passed
-      #  through the end of the material
+      # through the end of the material
       sim.run(until=250)
 
       # retrieve spectral powers and corresponding frequencies
@@ -220,7 +220,7 @@ We can observe that without nonlinearities, there is only a single peak correspo
 
 We have chosen the parameters such that the SHG field has more than two orders of magnitude less power than the pump field. This means that we can safely use the undepleted pump assumption, which makes our treatment slightly simpler.
 
-So far, everything we have done follows closely the `example simulation on third harmonic generation <https://meep.readthedocs.io/en/latest/Python_Tutorials/Third_Harmonic_Generation/>`_ from the official documentation. Next, we will expand on the official example and study the evolution of the SHG field during propagation. We will place multiple monitors along the propagation length that measure the power at twice the initial frequency. Also, we will measure the initial pump power for reference. This is achieved by modifying the simulation function as follows. The new parameter flux_spectrum determines whether the output spectrum or evolution of SHG field is measured and returned. We have written explicitly only those parts of the function that are modified. The full final simulation script is available on GitHub TODO.
+So far, everything we have done follows closely the `example simulation on third harmonic generation <https://meep.readthedocs.io/en/latest/Python_Tutorials/Third_Harmonic_Generation/>`_ from the official documentation. Next, we will expand on the official example and study the evolution of the SHG field during propagation. We will place multiple monitors along the propagation length that measure the power at twice the initial frequency. Also, we will measure the initial pump power for reference. This is achieved by modifying the simulation function as follows. The new parameter flux_spectrum determines whether the output spectrum or evolution of SHG field is measured and returned. We have written explicitly only those parts of the function that are modified. The full simulation script is available on GitHub TODO.
 
 .. code-block:: python
 
@@ -232,7 +232,6 @@ So far, everything we have done follows closely the `example simulation on third
       end_loc = mp.Vector3(0, 0, 0.5*cell_len - pml_size)
       if flux_spectrum:
          # define flux object for measuring the spectrum after propagation.
-         # Same code as before
          f_min = f_pump/2
          f_max = f_pump*3.5
          n_freq = 600
@@ -254,12 +253,11 @@ So far, everything we have done follows closely the `example simulation on third
          pump_flux = sim.add_flux(f_pump, 0, 1, mp.FluxRegion(source_loc+mp.Vector3(0, 0, 0.1)))
       
       # run for sufficiently long such that the pulse has fully passed
-      #  through the end of the material
+      # through the end of the material
       sim.run(until=250)
 
       if flux_spectrum:
          # retrieve spectral powers and corresponding frequencies.
-         # Same code as before
          trans_flux = mp.get_fluxes(trans)
          freqs = mp.get_flux_freqs(trans)
 
@@ -289,8 +287,9 @@ Next, we will run the new simulation function and obtain the SHG power at multip
 
    for res in resolutions:
       # measure SHG power during propagation and initial pump power
-      shg_power, z, pump_power = chi2_propagation(chi2=chi2, f_pump=f_pump, amplitude=source_amplitude,
-                                                   resolution=int(res), flux_spectrum=False)
+      shg_power, z, pump_power = chi2_propagation(chi2=chi2, f_pump=f_pump,
+                                     amplitude=source_amplitude, resolution=int(res),
+                                     flux_spectrum=False)
       shg_powers.append(shg_power)
 
    shg_powers = np.array(shg_powers)
@@ -301,13 +300,13 @@ We will compare the MEEP simulation to the analytical expression predicted by th
 
    I_2(z)= \frac{\omega^2 ( \chi^{(2)} )^2}{2 \varepsilon_0 n_0^3 c^3} I_1^2 z^2,
 
-where :math:`\omega` and :math:`I_1` are the pump frequency and intensity, :math:`n_0` is the refractive index, and :math:`z` is the propagation distance. The SHG intensity is expected to grow quadratically as a function propagation distance when no dispersion is present. `It is recommended to use real $E$-fields in MEEP simulations involving nonlinearities <https://meep.readthedocs.io/en/latest/Materials/#nonlinearity>`_, for which the relation :math:`I=\frac{1}{2} \varepsilon_0 n_0 c E^2` holds. Using this relation, the above equation can be written as
+where :math:`\omega` and :math:`I_1` are the pump frequency and intensity, :math:`n_0` is the refractive index, and :math:`z` is the propagation distance. The SHG intensity is expected to grow quadratically as a function propagation distance when no dispersion is present. `It is recommended to use real :math:`E`-fields in MEEP simulations involving nonlinearities <https://meep.readthedocs.io/en/latest/Materials/#nonlinearity>`_, for which the relation :math:`I=\frac{1}{2} \varepsilon_0 n_0 c E^2` holds. Using this relation, the above equation can be written as
 
 .. math::
 
-\frac{I_2}{I_1} = \frac{P_2}{P_1} = \frac{\omega^2}{4 n_0^2 c^2} \left(\chi^{(2)}E\right)^2 z^2,
+   \frac{I_2}{I_1} = \frac{P_2}{P_1} = \frac{\omega^2}{4 n_0^2 c^2} \left(\chi^{(2)}E\right)^2 z^2,
 
-where P is the optical power. The equation is now in a form where it is convenient to convert between MEEP units and SI units; the ratio on the left side is dimensionless so it's value is independent of units, and the right side feature the dimensionless product :math:`\chi^{(2)}E` whose value is also the same in MEEP units and SI units.
+where P is the optical power. The equation is now in a form where it is convenient to convert between MEEP units and SI units; the ratio on the left side is dimensionless so it's value is independent of units, and the right side features the dimensionless product :math:`\chi^{(2)}E` whose value is also the same in MEEP units and SI units.
 
 We can now plot a comparison of the MEEP simulation results and theory prediction:
 
@@ -341,7 +340,7 @@ We can now plot a comparison of the MEEP simulation results and theory predictio
 
 We can see that at a resolution of 256, the MEEP simulation result has converged to a nice agreement between the theoretical curve. The SHG power is increasing quadratically as a function of propagation distance. Still, the agreement between MEEP and theory is not perfect, which could be caused by the fact we are assuming in the theory that the pump is not losing any energy to the SHG field. While this assumption quite accurate with our chosen parameters, as seen from figure of the spectral powers, the assumption is not completely accurate.
 
-Interestingly, when the resolution is too low, we get completely incorrect behaviour. The curve corresponding to a resolution of 32 looks like a there is a phase matching problem, even though there is actually perfect phase matching when dispersion is not used in the simulation. For reference, the official documentation recommends to use an resolution corresponding to at least 8 pixels per shortest wavelength, which for our parameters is equivalent to :math:`8/\lambda_\text{min}=8/(1/(2 n_0 f_\text{pump}))\approx 33.6`, where everything is in MEEP units and :math:`\lambda_\text{min}`` is the wavelength of the SHG field inside the medium. We can see that we need a significantly higher resolution to get a good agreement with theory. It could be that nonlinear simulations require much higher resolutions than the recommended 8 pixels per shortest wavelength.
+Interestingly, when the resolution is too low, we get completely incorrect behaviour. The curve corresponding to a resolution of 32 looks like a there is a phase matching problem, even though there is actually perfect phase matching when dispersion is not used in the simulation. For reference, the official documentation recommends to use an resolution corresponding to at least 8 pixels per shortest wavelength, which for our parameters is equivalent to :math:`8/\lambda_\text{min}=8/(1/(2 n_0 f_\text{pump}))\approx 33.6`, where everything is in MEEP units and :math:`\lambda_\text{min}` is the wavelength of the SHG field inside the medium. We can see that we need a significantly higher resolution to get a good agreement with theory. It could be that nonlinear simulations require much higher resolutions than the recommended 8 pixels per shortest wavelength.
 
 SHG with Dispersion: Phase Matching Problem
 -------------------------------------------
