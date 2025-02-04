@@ -20,7 +20,7 @@ where :math:`\theta_1` is the angle of incidence and :math:`\theta_2` is the ang
 
 .. math::
 
-   \theta_\text{c}=\arcsin{\frac{n_2}{n_1}.
+   \theta_\text{c}=\arcsin{\frac{n_2}{n_1}}.
 
 Hence, for larger angles of incidence than the critical angle, the light reflected at the interface back to the core. This is essentially the mechanism how the light can be trapped inside the waveguide. 
 
