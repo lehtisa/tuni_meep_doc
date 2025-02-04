@@ -347,7 +347,7 @@ Interestingly, when the resolution is too low, we get completely incorrect behav
 SHG with Dispersion: Phase Matching Problem
 -------------------------------------------
 
-Having successfully conquered SHG without the presence of disersion, we will move on to simulate SHG in a material with dispersion, giving rise to the phase matching problem. Dispersion can be simulated easily in MEEP by importing materials with predefined dispersion from the `meep.materials library <https://meep.readthedocs.io/en/latest/Materials/>`_. It is also possible to use `user defined dispersion <>https://meep.readthedocs.io/en/master/Materials/#material-dispersion`_, but we will restrain ourselves to using only predefined dispersion in this demo.
+Having successfully conquered SHG without the presence of disersion, we will move on to simulate SHG in a material with dispersion, giving rise to the phase matching problem. Dispersion can be simulated easily in MEEP by importing materials with predefined dispersion from the `meep.materials library <https://meep.readthedocs.io/en/latest/Materials/>`_. It is also possible to use `user defined dispersion <https://meep.readthedocs.io/en/master/Materials/#material-dispersion>`_, but we will restrain ourselves to using only predefined dispersion in this demo.
 
 The predefined dispersion relation of LiNbO\ :sub:`3`\ can be plotted as follows:
 
@@ -422,10 +422,260 @@ We can now run the simulation with dispersion. We will again perform a resolutio
 
    shg_powers_disp = np.array(shg_powers_disp)
 
+We will again compare the simulation to the theoretical analytical expression. In the precence of dispersion, the power ratio between the SHG field and pump field is given by
+
+.. math::
+
+   \frac{P_2}{P_1} = \frac{\omega_1^2}{n_1 n_2 c^2 \Delta k^2} \left(\chi^{(2)}E_\text{pump}\right)^2 \sin ^2 \frac{z\Delta k}{2},
+
+where :math:`n_1` and :math:`n_2` are the refractive indices experienced by the pump field and SHG field, respectively, and :math:`\Delta k=2\frac{\omega_1}{c} \left(n_1 -n_2 \right)` is the wave vector miss match between between the pump and SHG waves. We have again written the equation in a form where unit conversion between MEEP units and SI units is almost automatically taken care of, as the left side is a dimensionless ratio and the right side contains the dimensionless product :math:`\chi^{(2)}E_\text{pump}`.
+
+Next, we plot a comparison of MEEP results and theory:
+
+.. code-block:: python
+
+   fig, ax = plt.subplots()
+
+   # plot the power ratio simulated in MEEP
+   ax.plot(z, shg_powers_disp.T/pump_power_disp, label=resolutions_disp)
+
+   n1 = n0
+   n2 = np.sqrt(LiNbO3.epsilon(2*f_pump)[0,0])
+   delta_k_SI = 2*omega_pump_SI/c * (n1 - n2)
+   power_ratio_theory_disp = omega_pump_SI**2 / (n1*n2 * c**2 * delta_k_SI**2) * (chi2_E_prod)**2 * np.sin(delta_k_SI*z_theory/2)**2
+
+   # plot power ratio predicted by theory
+   ax.plot(z_theory/a, power_ratio_theory_disp, "k:", label="theory")
+
+   ax.set_xlabel("propagation distance (µm)")
+   ax.set_ylabel("SHG power / pump power")
+   ax.set_xlim([0, z[-1]])
+   ax.set_ylim([0, 1.05*power_ratio_theory_disp.max()])
+   leg = ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
+   leg.set_title("MEEP resolution\n(pixels/µm)")
+
+.. figure:: nonlinear_phenomena_figures/shg_with_dispersion.png
+   :alt: test text
+   :width: 90%
+   :align: center
+
+The MEEP simulation has converged to a good agreement with the theory at a resolution of 512. The power of the SHG field is increasing quadratically as with perfect phase matching, but insead oscillating as a weak sinusoidal, as predicted by the theory. The agreement with is not perfect as seen from the peaks, which could be caused partially by the inaccuracy of the undepleted pump assumption.
+
+We can see that we perhaps need a higher resolution to reach convergence with dispersion than in the earlier figure without dispersion. This is reasonable, since the SHG field experiences a higher refractive index with dispersion, resulting in a smaller wavelength. Although it is not easy to make comparisons between the figures since the y-axes have differenct scales. 
+
 Quasi-Phase Matching
 --------------------
 
-lorem ipsum
+We have now seen that without dispersion, the SHG power grows quadratically with propagation distance, and with dispersion, it ocillates weakly as a sinusoidal due to the phase matching problem. In experiments, it usually desired to achieve the quadratic growth of the SHG power. Even though real materials always have dispersion, the quadratic growth can be achieved by utilizing special techniques.
+
+The most common way to achieve phase matching in the presence of dispersion is birefringent phase matching. It relies birefrince (polarization dependence of the refractive index) and the fact that some SHG light is generated with orthogonal polarization with respect to the pump field, resulting from the off-diagonal elements of the :math:`\chi^{(2)}` susceptibility tensor. However, MEEP doesn't support off-diagonal elements of nonlinear susceptibility tensors, and hence it is not possible to simulate birefringent phase matching directly in MEEP.
+
+The second most common phase matching method, quasi-phase matching, can be simulated in MEEP. The idea of quasi-phase matching is to switch the sign of :math:`\chi^{(2)}` after the SHG power has reached the first local maximum of the sinusoidal, leading to continued growth of the SHG power. After that, the sign of :math:`\chi^{(2)}` is swithced repeatedly with the same period. The distance from :math:`z=0` to the first local maximum of the sinusoidal is known as the coherence length, and it is given by :math:`L_c=\frac{\pi}{\Delta k}`.
+
+Next we modify our simulation function to implement quasi-phase matching. We have made quite a few updates to the function since we first introduced it, so we show the whole function explicitly this time.
+
+.. code-block:: python
+
+   from copy import copy
+
+   def chi2_propagation(chi2, f_pump, amplitude, resolution, flux_spectrum=True, dispersion=False,
+                        quasi_phase_matching=False, coherence_length=0):
+
+      """Propagate pulse in a second order nonlinear material and measure
+      output spectrum or SHG power at different propagation distances.
+
+      :param chi2: float, second order nonlinear susceptibility
+      :param f_pump: float, pump frequency
+      :param amplitude: float, pump current amplitude J
+      :param resolution: int, resolution of simulation
+      :param flux_spectrum: bool, determines whether output spectrum (True) or
+      SHG power at different propagation distances (False) is returned
+      :param dispersion: bool, determines whether dispersion is used
+      :param quasi_phase_matching: bool, determines whether quasi-phase matching
+      is used
+      :param coherence_length: float, if quasi-phase matching is used, determines
+      the length after which sign of chi2 is swithced
+      :return: if flux_spectrum==True, returns tuple the (spectral powers,
+      corresponding frequencies), otherwise returns the tuple (SHG powers,
+      corresponding propagation distances, initial pump power)
+      """
+
+      # perfectly matched layers
+      pml_size = 2.0
+      pml_layers = [mp.PML(pml_size)]
+
+      # define simulation cell (15 µm propagation distance)
+      cell_len = 15 + 2*pml_size
+      cell = mp.Vector3(0, 0, cell_len)
+
+      # define pump source
+      source_loc = mp.Vector3(0, 0, -0.5*cell_len + pml_size)
+      f_width = f_pump/20.0
+      sources = [
+         mp.Source(
+               mp.GaussianSource(f_pump, fwidth=f_width),
+               component=mp.Ex,
+               center=source_loc,
+               amplitude=amplitude,
+         )
+      ]
+
+      geometry = []
+      if quasi_phase_matching and dispersion:
+         default_material = LiNbO3
+
+         # create geometry where sign of chi2 is swithced every
+         # coherence length
+
+         z = source_loc[2]
+         sign = 1
+         while True:
+               if z >= cell_len/2:
+                  break
+
+               z_start = z
+               z_end = np.min([z+coherence_length, cell_len/2])
+               # previously defined geometry is affected without copy
+               material = copy(LiNbO3)
+               # add nonlinearity with switched sign
+               material.E_chi2_diag = mp.Vector3(sign*chi2, sign*chi2, sign*chi2)
+               block = mp.Block(size=mp.Vector3(0, 0, z_end-z_start),
+                              center=mp.Vector3(0, 0, (z_start+z_end)/2),
+                              material=material)
+               geometry.append(block)
+
+               z += coherence_length
+               sign *= -1
+               
+      elif dispersion:
+         # dispersion is automatically included with the imported material
+         default_material = LiNbO3
+         # add nonlinearity
+         default_material.E_chi2_diag = mp.Vector3(chi2, chi2, chi2)
+
+      elif not dispersion:
+         # note the constant epsilon (no dispersion) and
+         # second order nonlinear susceptibility chi2
+         default_material = mp.Medium(epsilon=LiNbO3.epsilon(f_pump)[0,0], chi2=chi2)
+      
+      else:
+         print('bad input')
+         return
+
+      # define simulation object
+      sim = mp.Simulation(
+         cell_size=cell,
+         sources=sources,
+         boundary_layers=pml_layers,
+         default_material=default_material,
+         geometry=geometry,
+         resolution=resolution,
+         dimensions=1,
+      )
+
+      end_loc = mp.Vector3(0, 0, 0.5*cell_len - pml_size)
+      if flux_spectrum:
+         # define flux object for measuring the spectrum after propagation
+         f_min = f_pump/2
+         f_max = f_pump*3.5
+         n_freq = 600
+         trans = sim.add_flux(0.5*(f_min + f_max), f_max-f_min, n_freq, mp.FluxRegion(end_loc))
+      else:
+         # monitor power at SHG frequency in different locations along
+         # propagation length
+         n_monitors = 100
+         monitor_locs_z = np.linspace(source_loc[2], end_loc[2], n_monitors)
+         propagation_shg_fluxes = []
+         for z in monitor_locs_z:
+               # measure flux at twice the pump frequency             
+               shg_flux = sim.add_flux(2*f_pump, 0, 1, mp.FluxRegion(mp.Vector3(0, 0, z)))
+               propagation_shg_fluxes.append(shg_flux)
+         
+         # measure initial pump power for reference. Note that flux object
+         # cannot be exactly on top of source because equal power is emitted
+         # to the left and right of the source.
+         pump_flux = sim.add_flux(f_pump, 0, 1, mp.FluxRegion(source_loc+mp.Vector3(0, 0, 0.1)))
+      
+      # run for sufficiently long such that the pulse has fully passed
+      #  through the end of the material
+      sim.run(until=250)
+
+      if flux_spectrum:
+         # retrieve spectral powers and corresponding frequencies
+         trans_flux = mp.get_fluxes(trans)
+         freqs = mp.get_flux_freqs(trans)
+
+         return np.array(trans_flux), np.array(freqs)
+
+      else:
+         # retrieve SHG power along propagation
+         propagation_shg_powers = []
+         for flux in propagation_shg_fluxes:
+               propagation_shg_powers.append(mp.get_fluxes(flux))
+         
+         # retrieve pump power
+         pump_power = mp.get_fluxes(pump_flux)
+         
+         return ( np.array(propagation_shg_powers).flatten(),
+                  # change coordinates such that source is at z=0
+                  monitor_locs_z-source_loc[2],
+                  pump_power )
+
+We can now calculate the coherence length and simulate the evolution of the SHG field with quasi-phase matching. We will use the resolution of 512 which was found to be sufficient for the case with dispersion.
+
+.. code-block:: python
+
+delta_k = delta_k_SI*a
+coherence_length = np.abs(np.pi/delta_k)
+shg_power_quasi, z, pump_power_quasi = chi2_propagation(chi2=chi2, f_pump=f_pump,
+                                           amplitude=source_amplitude, resolution=512,
+                                           flux_spectrum=False, dispersion=True,
+                                           quasi_phase_matching=True,
+                                           coherence_length=coherence_length)
+
+Again, we compare the simulation result to the analytical expression predicted by the theory. Under quasi-phase matching, the SHG power is expected to grow as TODO. It was found when making this demo that the description of quasi-phase matching given in the Boyd book is slightly inaccurate, as every other "step" of the "staircase" is missing.
+
+We can now calculate the theoretical curve and plot it with the MEEP simulation result. We will also plot the earlier curves with perfect phase matching (no dispersion) and with phase miss match (with dispersion) for reference.
+
+.. code-block:: python
+
+   fig, ax = plt.subplots()
+
+   ax.plot(z, shg_powers[-1,:]/pump_power, label="MEEP phase matched")
+   ax.plot(z, shg_power_quasi/pump_power_quasi, label="MEEP quasi-phase matched")
+   ax.plot(z, shg_powers_disp[-1,:]/pump_power_disp, label="MEEP not phase matched")
+
+   def quasi_staircase(z, delta_k):
+      coherence_length = np.pi/delta_k
+
+      if z <= coherence_length:
+         y=2*np.sin(delta_k * z / 2)**2
+      else:
+         n = z//coherence_length
+         z_current = z%coherence_length
+         y = 2*n**2+2*n+1 - (1+2*n)*np.cos(delta_k*z_current)
+
+      return y
+
+   stairs = np.array([quasi_staircase(z_i, delta_k_SI) for z_i in z_theory])
+   power_ratio_theory_quasi = 1/2 *  omega_pump_SI**2 / (n1*n2 * c**2 * delta_k_SI**2) * (chi2_E_prod)**2 * stairs
+   ax.plot(z_theory/a, power_ratio_theory_quasi, "k:", label="theory")
+
+   ax.plot(z_theory/a, power_ratio_theory_disp, "k:")
+   ax.plot(z_theory/a, power_ratio_theory, "k:")
+
+   ax.set_xlabel("propagation distance (µm)")
+   ax.set_ylabel("SHG power / pump power")
+   ax.set_xlim([0, z[-1]])
+   ax.set_ylim([0, power_ratio_theory_quasi[-1]*1.1])
+   ax.legend()
+
+.. figure:: nonlinear_phenomena_figures/shg_quasi.png
+   :alt: test text
+   :width: 90%
+   :align: center
+
+The simulation agrees well with the theory again. With quasi-phase matching, the SHG power is growing approximately quadratically, but not as steeply as with perfect phase matching. Compared to the case without phase mathing, the benefit of quasi-phase matching is evident.
 
 Demo 2: Optical Bistability
 ===========================
