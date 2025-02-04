@@ -89,7 +89,7 @@ First, we import the required libraries and define parameters:
    eps = LiNbO3.epsilon(f_pump)[0,0]
    n0 = np.sqrt(eps)  # refractive index
 
-Next, we define a simulation function that propagates the input pulse in a :math:`\chi^{(2)}` medium and measures the output spectrum, as described in the above figure. A nonlinear optical simulation can be implemented by simply using a material with nonzero nonlinear susceptibility. We are simulating the case without dispersion, so we are using a constant refractive index that corresponds to the refractive index of LiNbO\ :sub:`2`\  at the pump frequency.
+Next, we define a simulation function that propagates the input pulse in a :math:`\chi^{(2)}` medium and measures the output spectrum, as described in the above figure. A nonlinear optical simulation can be implemented simply by using a material with nonzero nonlinear susceptibility. We are simulating the case without dispersion, so we are using a constant refractive index that corresponds to the refractive index of LiNbO\ :sub:`3`\  at the pump frequency.
 
 .. code-block:: python
 
@@ -203,7 +203,7 @@ The results of the simulation are then plotted as follows:
    ax.semilogy(freqs_SI*1e-12, trans_flux/norm,
                label=fr"$\chi^{{(2)}}={chi2_E_prod}/E_{{\text{{pump}}}}$")
    ax.semilogy(freqs_SI*1e-12, reference_trans_flux/norm, linestyle="--",
-               label=rf"$\chi^{(2)}$={0}")
+               label=rf"$\chi^{{(2)}}$={0}")
    ax.set_xlabel("frequency (THz)")
    ax.set_ylabel("transmitted power (a.u.)")
    ax.set_xlim([freqs_SI[0]*1e-12, freqs_SI[-1]*1e-12])
@@ -221,7 +221,7 @@ We can observe that without nonlinearities, there is only a single peak correspo
 
 We have chosen the parameters such that the SHG field has more than two orders of magnitude less power than the pump field. This means that we can safely use the undepleted pump assumption, which makes our treatment slightly simpler.
 
-So far, everything we have done follows closely the `example simulation on third harmonic generation <https://meep.readthedocs.io/en/latest/Python_Tutorials/Third_Harmonic_Generation/>`_ from the official documentation. Next, we will expand on the official example and study the evolution of the SHG field during propagation. We will place multiple monitors along the propagation length that measure the power at twice the initial frequency. Also, we will measure the initial pump power for reference. This is achieved by modifying the simulation function as follows. The new parameter flux_spectrum determines whether the output spectrum or evolution of SHG field is measured and returned. We have written explicitly only those parts of the function that are modified. The full simulation script is available on GitHub TODO.
+So far, everything we have done follows closely the `example simulation on third harmonic generation <https://meep.readthedocs.io/en/latest/Python_Tutorials/Third_Harmonic_Generation/>`_ from the official documentation. Next, we will expand on the official example and study the evolution of the SHG field during propagation. We will place multiple monitors along the propagation length that measure the power at twice the initial frequency. Also, we will measure the initial pump power for reference. This is achieved by modifying the simulation function as follows. The new parameter :code:`flux_spectrum` determines whether the output spectrum or evolution of SHG field is measured and returned. We have written explicitly only those parts of the function that are modified. The full simulation script is available on GitHub TODO.
 
 .. code-block:: python
 
@@ -342,14 +342,87 @@ We can now plot a comparison of the MEEP simulation results and theory predictio
 
 We can see that at a resolution of 256, the MEEP simulation result has converged to a nice agreement between the theoretical curve. The SHG power is increasing quadratically as a function of propagation distance. Still, the agreement between MEEP and theory is not perfect, which could be caused by the fact we are assuming in the theory that the pump is not losing any energy to the SHG field. While this assumption quite accurate with our chosen parameters, as seen from figure of the spectral powers, the assumption is not completely accurate.
 
-Interestingly, when the resolution is too low, we get completely incorrect behaviour. The curve corresponding to a resolution of 32 looks like a there is a phase matching problem, even though there is actually perfect phase matching when dispersion is not used in the simulation. For reference, the official documentation recommends to use an resolution corresponding to at least 8 pixels per shortest wavelength, which for our parameters is equivalent to :math:`8/\lambda_\text{min}=8/(1/(2 n_0 f_\text{pump}))\approx 33.6`, where everything is in MEEP units and :math:`\lambda_\text{min}` is the wavelength of the SHG field inside the medium. We can see that we need a significantly higher resolution to get a good agreement with theory. It could be that nonlinear simulations require much higher resolutions than the recommended 8 pixels per shortest wavelength.
+Interestingly, when the resolution is too low, we get completely incorrect behaviour. The curve corresponding to a resolution of 32 looks like a there is a phase matching problem, even though there is actually perfect phase matching when dispersion is not used in the simulation. For reference, the official documentation recommends to use a resolution corresponding to at least 8 pixels per shortest wavelength, which for our parameters is equivalent to :math:`8/\lambda_\text{min}=8/(1/(2 n_0 f_\text{pump}))\approx 33.6`, where everything is in MEEP units and :math:`\lambda_\text{min}` is the wavelength of the SHG field inside the medium. We can see that we need a significantly higher resolution to get a good agreement with theory. It could be that nonlinear simulations require much higher resolutions than the recommended 8 pixels per shortest wavelength.
 
 SHG with Dispersion: Phase Matching Problem
 -------------------------------------------
 
-lorem ipsum
+Having successfully conquered SHG without the presence of disersion, we will move on to simulate SHG in a material with dispersion, giving rise to the phase matching problem. Dispersion can be simulated easily in MEEP by importing materials with predefined dispersion from the `meep.materials library <https://meep.readthedocs.io/en/latest/Materials/>`_. It is also possible to use `user defined dispersion <>https://meep.readthedocs.io/en/master/Materials/#material-dispersion`_, but we will restrain ourselves to using only predefined dispersion in this demo.
 
-Quase-Phase Matching
+The predefined dispersion relation of LiNbO\ :sub:`3`\ can be plotted as follows:
+
+.. code-block:: python
+
+   freqs = np.linspace(0.2, 2.5, 100)  # in MEEP units
+   freqs_SI = freqs * c/a  # convert to SI units
+
+   # .epsilon() returns the permittivity tensor at given frequency,
+   # so we index an element that is on the diagonal
+   epsilon = np.array([LiNbO3.epsilon(f)[0][0] for f in freqs])
+   n = np.sqrt(epsilon)
+
+   # plot dispersion relation
+   fig, ax = plt.subplots()
+   ax.plot(freqs_SI*1e-12, n)
+
+   # draw vertical lines at pump and SHG frequencies
+   ax.plot([f_pump_SI*1e-12, f_pump_SI*1e-12], [0, 10], 'k-', label='pump frequency')
+   ax.plot([2*f_pump_SI*1e-12, 2*f_pump_SI*1e-12], [0, 10], 'k--', label='SHG frequency')
+
+   ax.set_xlabel('frequency (THz)')
+   ax.set_ylabel('refractive index')
+   ax.set_xlim([freqs_SI[0]*1e-12, freqs_SI[-1]*1e-12])
+   ax.set_ylim([n.min(), n.max()])
+   ax.legend(loc='upper left')
+
+.. figure:: nonlinear_phenomena_figures/shg_dispersion_relation.png
+   :alt: test text
+   :width: 90%
+   :align: center
+
+We can observe that the pump field and SHG field experience different refractive indices. This leads to the phase matching problem which inhibits the growth of the SHG intensity during propagation. The physical mechanism behind the phase matching problem can described in many different ways, one of which states that the nonlinear polarization response oscillating twice the pump frequency effectively experiences the same refractive index as the pump field. However, the SHG field experiences a different refractive index than the polarization response generating the field, which means that periodically the polarization response is generating a SHG field that cancels out the existing SHG field. This prevents the quadratic growth of SHG intensity during propagation, and leads to a weak sinusoidal SHG intensity as a function of propagation distance.
+
+We update our simulation function as follows to include dispersion. The new :code:`dispersion` parameter determines whether dispersion is used.
+
+.. code-block:: python
+
+   def chi2_propagation(chi2, f_pump, amplitude, resolution,
+                        flux_spectrum=True, dispersion=False):
+
+   # ... beginning of function is identical as before
+
+   if dispersion:
+      # dispersion is automatically included with the imported material
+      default_material = LiNbO3
+      # add nonlinearity
+      default_material.E_chi2_diag = mp.Vector3(chi2, chi2, chi2)
+
+   else:
+      # note the constant epsilon (no dispersion) and
+      # second order nonlinear susceptibility chi2
+      default_material = mp.Medium(epsilon=LiNbO3.epsilon(f_pump)[0,0], chi2=chi2)
+
+   # end of function is identical as before ...
+
+We can now run the simulation with dispersion. We will again perform a resolution convergence analysis.
+
+.. code-block:: python
+
+   # perform convergence analysis by doubling resolution repeatedly
+   resolutions_disp = 32 * 2**np.arange(6)
+   shg_powers_disp = []
+
+   for res in resolutions_disp:
+      # measure SHG power during propagation and initial pump power
+      shg_power_disp, z, pump_power_disp = chi2_propagation(chi2=chi2, f_pump=f_pump,
+                                               amplitude=source_amplitude,
+                                               resolution=int(res), flux_spectrum=False,
+                                               dispersion=True)
+      shg_powers_disp.append(shg_power_disp)
+
+   shg_powers_disp = np.array(shg_powers_disp)
+
+Quasi-Phase Matching
 --------------------
 
 lorem ipsum
