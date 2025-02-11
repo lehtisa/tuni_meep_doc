@@ -184,6 +184,7 @@ Now we can specify the time until which the simulation runs and run the simulati
 .. code-block:: python
 
    sim_time = 200
+   plt.savefig("1_simulation_setup.pdf")
    sim.run(until=sim_time)
 
 Now that the simulation has run, we can use ``plot2D()`` to see what kind of result we have obtained. Here we need to tell which field and which component we want to see. We'd like to see the :math:`z`-component of the electric field.
@@ -191,6 +192,7 @@ Now that the simulation has run, we can use ``plot2D()`` to see what kind of res
 .. code-block:: python
     
    sim.plot2D(fields=mp.Ez)
+   plt.savefig("2_after_first_run.pdf")
    plt.show()
 
 .. figure:: waveguide_figures/2_after_first_run.pdf
@@ -226,6 +228,8 @@ It is nice figure but if you want more control how to figure looks, you could pl
    fig.colorbar(ez_image, label="Electric field", ax=ax, orientation='horizontal')
    ax.set_xlabel(r"$x$ (µm)")
    ax.set_ylabel(r"$y$ (µm)")
+
+   plt.savefig("3_improved_figure.pdf")
    plt.show()
 
 
@@ -290,6 +294,7 @@ There are multiple ways of doing this but here we choose to inspect the magnitud
    ax.set_ylabel(r"$|E_z|$ (arb. unit)")
    ax.legend(loc=0)
 
+   plt.savefig("4_convergence_study.pdf")
    plt.show()
 
 This results in the following figure:
@@ -405,7 +410,7 @@ And now we create the animation.
    # Create the animation
    ani = FuncAnimation(fig, update, frames=range(ez_data.shape[0]), interval=100, 
                      blit=True)
-   ani.save("5. animation.gif", writer="imagemagick", fps=30, dpi=100)
+   ani.save("5_animation.gif", writer="imagemagick", fps=30, dpi=100)
 
 Now we have a nice animation! Note that we can observe here how to source turns on gradually, how the PML absorbs the incident field, and also the evanascent fields traveling outside the waveguide! 
 
