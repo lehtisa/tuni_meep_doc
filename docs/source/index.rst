@@ -18,7 +18,7 @@ Contents
    introduction
    theory
    installation
-   basics
+   double_slit
    symmetries_and_dimensions
    waveguides
    reflection_and_refraction
