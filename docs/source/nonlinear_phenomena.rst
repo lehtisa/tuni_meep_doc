@@ -101,6 +101,7 @@ Next, we define a simulation function that propagates the input pulse in a :math
       :param f_pump: float, pump frequency
       :param amplitude: float, pump current amplitude J
       :param resolution: int, resolution of simulation
+
       :return: (np.ndarray, np.ndarray), output spectral powers and
       corresponding frequencies
       """
@@ -347,7 +348,7 @@ Interestingly, when the resolution is too low, we get completely incorrect behav
 SHG with Dispersion: Phase Matching Problem
 -------------------------------------------
 
-Having successfully conquered SHG without the presence of dispersion, we will move on to simulate SHG in a material with dispersion, giving rise to the phase matching problem. Dispersion can be easily included in MEEP by importing materials with predefined dispersion from the `meep.materials library <https://meep.readthedocs.io/en/latest/Materials/>`_. It is also possible to use `user defined dispersion <https://meep.readthedocs.io/en/master/Materials/#material-dispersion>`_, but we will restrain ourselves to using only predefined dispersion in this demo.
+Having successfully conquered SHG without the presence of dispersion, we will move on to simulate SHG in a dispersive material, giving rise to the phase matching problem. Dispersion can be easily included in MEEP by importing materials with predefined dispersion from the `meep.materials library <https://meep.readthedocs.io/en/latest/Materials/>`_. It is also possible to use `user defined dispersion <https://meep.readthedocs.io/en/master/Materials/#material-dispersion>`_, but we will restrain ourselves to using only predefined dispersion in this demo.
 
 The predefined dispersion relation of LiNbO\ :sub:`3`\ can be plotted as follows:
 
@@ -442,7 +443,8 @@ Next, we plot a comparison of MEEP results and theory:
    n1 = n0
    n2 = np.sqrt(LiNbO3.epsilon(2*f_pump)[0,0])
    delta_k_SI = 2*omega_pump_SI/c * (n1 - n2)
-   power_ratio_theory_disp = omega_pump_SI**2 / (n1*n2 * c**2 * delta_k_SI**2) * (chi2_E_prod)**2 * np.sin(delta_k_SI*z_theory/2)**2
+   power_ratio_theory_disp = (omega_pump_SI**2 / (n1*n2 * c**2 * delta_k_SI**2)
+                              * (chi2_E_prod)**2 * np.sin(delta_k_SI*z_theory/2)**2)
 
    # plot power ratio predicted by theory
    ax.plot(z_theory/a, power_ratio_theory_disp, "k:", label="theory")
@@ -459,16 +461,16 @@ Next, we plot a comparison of MEEP results and theory:
    :width: 90%
    :align: center
 
-The MEEP simulation has converged to a good agreement with the theory at a resolution of 512. The power of the SHG field is not increasing quadratically as with perfect phase matching, but insead oscillating as a weak sinusoidal, as predicted by the theory. The agreement with is not perfect as seen from the peaks, which could be caused at least partially by the inaccuracy of the undepleted pump assumption.
+The MEEP simulation has converged to a good agreement with the theory at a resolution of 512. The power of the SHG field is not increasing quadratically as with perfect phase matching, but insead oscillating as a weak sinusoidal, as predicted by the theory. The agreement with is not perfect as seen from the peaks, which could be caused by the inaccuracy of the undepleted pump assumption and the fact the refractive index varies slightly within the pulse bandwidths, which is not taken into account in the theory.
 
 We can see that we perhaps need a higher resolution to reach convergence with dispersion than in the earlier figure without dispersion. This is reasonable, since the SHG field experiences a higher refractive index with dispersion, resulting in a smaller wavelength. Although it is not easy to make comparisons between the figures since the y-axes have differenct scales. 
 
 Quasi-Phase Matching
 --------------------
 
-We have now seen that without dispersion, the SHG power grows quadratically with propagation distance, and with dispersion, it ocillates weakly as a sinusoidal due to the phase matching problem. In experiments, it usually desired to achieve the quadratic growth of the SHG power. Even though real materials always have dispersion, the quadratic growth can be achieved by utilizing special techniques.
+We have now seen that without dispersion, the SHG power grows quadratically with propagation distance, and with dispersion, it ocillates weakly as a sinusoidal due to the phase matching problem. In experiments and applications, it usually desired to achieve the quadratic growth of the SHG power. Even though real materials are always dispersive, the quadratic growth can be achieved by utilizing special techniques.
 
-The most common way to achieve phase matching in the presence of dispersion is birefringent phase matching. It relies birefrince (polarization dependence of the refractive index) and the fact that some SHG light is generated with orthogonal polarization with respect to the pump field, resulting from the off-diagonal elements of the :math:`\chi^{(2)}` susceptibility tensor. However, MEEP doesn't support off-diagonal elements of nonlinear susceptibility tensors, and hence it is not possible to simulate birefringent phase matching directly in MEEP.
+The most common way to achieve phase matching in the presence of dispersion is birefringent phase matching. It relies on birefrince (polarization dependence of the refractive index) and the fact that some SHG light is generated with orthogonal polarization with respect to the pump field, resulting from the off-diagonal elements of the :math:`\chi^{(2)}` susceptibility tensor. However, MEEP doesn't support off-diagonal elements of nonlinear susceptibility tensors, and hence it is not possible to simulate birefringent phase matching directly in MEEP.
 
 The second most common phase matching method, quasi-phase matching, can be simulated in MEEP. The idea of quasi-phase matching is to switch the sign of :math:`\chi^{(2)}` after the SHG power has reached the first local maximum of the sinusoidal, leading to continued growth of the SHG power. After that, the sign of :math:`\chi^{(2)}` is swithced repeatedly with the same period. The distance from :math:`z=0` to the first local maximum of the sinusoidal is known as the coherence length, and it is given by :math:`L_c=\frac{\pi}{\Delta k}`.
 
@@ -478,8 +480,9 @@ Next, we modify our simulation function to implement quasi-phase matching. We ha
 
    from copy import copy
 
-   def chi2_propagation(chi2, f_pump, amplitude, resolution, flux_spectrum=True, dispersion=False,
-                        quasi_phase_matching=False, coherence_length=0):
+   def chi2_propagation(chi2, f_pump, amplitude, resolution, flux_spectrum=True, 
+                        dispersion=False, quasi_phase_matching=False,
+                        coherence_length=0):
 
       """Propagate pulse in a second order nonlinear material and measure
       output spectrum or SHG power at different propagation distances.
@@ -495,6 +498,7 @@ Next, we modify our simulation function to implement quasi-phase matching. We ha
       is used
       :param coherence_length: float, if quasi-phase matching is used, determines
       the length after which sign of chi2 is swithced
+
       :return: if flux_spectrum==True, returns tuple the (spectral powers,
       corresponding frequencies), otherwise returns the tuple (SHG powers,
       corresponding propagation distances, initial pump power)
@@ -658,7 +662,8 @@ We can now calculate the theoretical curve and plot it with the MEEP simulation 
       return y
 
    stairs = np.array([quasi_staircase(z_i, delta_k_SI) for z_i in z_theory])
-   power_ratio_theory_quasi = 1/2 *  omega_pump_SI**2 / (n1*n2 * c**2 * delta_k_SI**2) * (chi2_E_prod)**2 * stairs
+   power_ratio_theory_quasi = (1/2 *  omega_pump_SI**2 / (n1*n2 * c**2 * delta_k_SI**2)
+                               * (chi2_E_prod)**2 * stairs)                            
    ax.plot(z_theory/a, power_ratio_theory_quasi, "k:", label="theory")
 
    ax.plot(z_theory/a, power_ratio_theory_disp, "k:")
@@ -675,7 +680,7 @@ We can now calculate the theoretical curve and plot it with the MEEP simulation 
    :width: 90%
    :align: center
 
-The simulation agrees quite well with the theory again. With quasi-phase matching, the SHG power is growing approximately quadratically, but not as steeply as with perfect phase matching. Compared to the case without phase mathing, the benefit of quasi-phase matching is evident.
+The simulation agrees quite well with the theory again. As with the case with dispersion, the slight discrepancy with the theory is likely caused by the inaccuracy of the undepleted pump assumption and the slight variation of refractive index within the pulse bandwidths. With quasi-phase matching, the SHG power is growing approximately quadratically, but not as steeply as with perfect phase matching. Compared to the case without phase matching, the benefit of quasi-phase matching is evident.
 
 Demo 2: Optical Bistability
 ===========================
