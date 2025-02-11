@@ -82,7 +82,7 @@ Next we install the Python interface of MEEP using Conda. The command to run is
 .. note::
     With a Mac with Apple silicon chip (M series), it might be necessary to use the line 
         ``CONDA_SUBDIR=osx-64 conda create -n mp -c conda-forge pymeep pymeep-extras``
-    This is because there are installers of Pymeep for only ``linux-64``and ``os-x64`` provided by Conda.
+    This is because there are installers of Pymeep for only ``linux-64`` and ``os-x64`` provided by Conda.
 
 
 This will create a Python environment called "mp". Next we need to activate the environment with the command
