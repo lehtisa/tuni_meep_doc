@@ -201,6 +201,7 @@ Now that the simulation has run, we can use ``plot2D()`` to see what kind of res
 It is nice figure but if you want more control how to figure looks, you could plot it more manually. Here we show one way of extracting the data from the simulation after it has run and visualizing it using Matplotlib. 
 
 .. code-block:: python
+
    # dielectric constant in the simulation cell (i.e. the waveguide geometry)
     eps_data = sim.get_array(center=mp.Vector3(0, 0, 0), size=cell, component=mp.Dielectric).T 
 
@@ -227,6 +228,7 @@ It is nice figure but if you want more control how to figure looks, you could pl
    ax.set_ylabel(r"$y$ (µm)")
    plt.show()
 
+
 .. figure:: waveguide_figures/3_improved_figure.pdf
    :alt: Improved figure
    :width: 90%
@@ -241,6 +243,7 @@ One important question might arise at some point during our numerical experiment
 There are multiple ways of doing this but here we choose to inspect the magnitude of the electric field at two different points in and just outside the waveguide after the simulation is run. By doing this, we can get some sort of an idea about the sufficiency of the resolution. 
 
 .. code-block:: python
+   
    resolutions = np.array([5.0, 10.0, 20.0, 40.0, 80.0])
 
    wg_point = mp.Vector3(4, 0, 0)
