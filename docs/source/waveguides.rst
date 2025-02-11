@@ -282,7 +282,7 @@ We see that the results are quite well converged when the resolution is 20 which
 
    .. math::
 
-      \frac{10 \text{px}}{\lambda/n}=2\cdot\frac{10 \text{px}}{\cdot 1.55 \text{µm}} \approx 13 \text{px/µm}
+      \frac{10~\text{px}}{\lambda/n}=\frac{10 \text{px}}{1.55 \text{µm}}\cdot 2 \approx 13 \text{px/µm}
 
    which is in good agreement with our results. Nevertheless, it is not a bad idea to investigate the sufficient resolution with a convergence experiment. 
 
