@@ -99,7 +99,7 @@ The next step is to define the region where MEEP is calculating the fields, i.e.
 
    cell = mp.Vector3(cell_x, cell_y, cell_z)
 
-Now it is time to add the actual waveguide to the cell. To do that, we need to define its dimensions and material. Here we want to simulate a 0.5 µm wide waveguide which is infinitely long and high. We choose our material to be silicon nitride (Si\ :sub:`3`\N\ :sub:`4`\ ). Its refractive index is around 2.0 at the wavelength of 1.55 µm [CIT_SiN_RI]_. which is our wavelength region of interest in this case. 
+Now it is time to add the actual waveguide to the cell. To do that, we need to define its dimensions and material. Here we want to simulate a 0.5 µm wide waveguide which is infinitely long and high. We choose our material to be silicon nitride (Si\ :sub:`3`\N\ :sub:`4`\ ). Its refractive index is around 2.0 at the wavelength of 1.55 µm [1]_. which is our wavelength region of interest in this case. 
 
 The material is specified with a ``Medium`` object. We can define its refractive index with the parameter ``index``, or alternatively we could specify its dielectric constant :math:`\varepsilon` with the parameter ``epsilon``. The waveguide geometry can be defined with a ``Block`` object which needs the size, the center and the material. It is customary to store the created geometries in a list called ``geometry``.
 
@@ -243,7 +243,7 @@ One important question might arise at some point during our numerical experiment
 There are multiple ways of doing this but here we choose to inspect the magnitude of the electric field at two different points in and just outside the waveguide after the simulation is run. By doing this, we can get some sort of an idea about the sufficiency of the resolution. 
 
 .. code-block:: python
-   
+
    resolutions = np.array([5.0, 10.0, 20.0, 40.0, 80.0])
 
    wg_point = mp.Vector3(4, 0, 0)
@@ -344,6 +344,7 @@ To animate the simulation, we naturally need to gather data also during it. This
 After running the simulation, we should have ended up with a file the name of which end with ``sim_data.h5``. It contains the data about the geometry in a dataset called ``eps`` and the electric data in a dataset called ``ez``. Next we read the data from the file. 
 
 .. code-block:: python
+
    with h5py.File(filename + ".h5", "r") as f:
       # Remember to transpose!
       eps_data = f["eps"][:,:,0].T
@@ -352,6 +353,7 @@ After running the simulation, we should have ended up with a file the name of wh
 And now we create the animation. 
 
 .. code-block:: python
+
    # Create a figure and axis for plotting
    fig = plt.figure()
    ax = fig.add_subplot(1, 1, 1)
@@ -417,4 +419,4 @@ Now we have a nice animation! Note that we can observe here how to source turns 
 
 
 
-.. [CIT_SiN_RI] K. Luke, Y. Okawachi, M. R. E. Lamont, A. L. Gaeta, M. Lipson. Broadband mid-infrared frequency comb generation in a Si3N4 microresonator. Opt. Lett. 40, 4823-4826 (2015)
+.. [1] K. Luke, Y. Okawachi, M. R. E. Lamont, A. L. Gaeta, M. Lipson. Broadband mid-infrared frequency comb generation in a Si3N4 microresonator. Opt. Lett. 40, 4823-4826 (2015)
