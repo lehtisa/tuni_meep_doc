@@ -169,7 +169,7 @@ Now, before running the simulation, it is a good idea to check that we have set 
    sim.plot2D()
    plt.show()
 
-.. figure:: waveguide_figures/1. simulation setup.pdf
+.. figure:: waveguide_figures/1_simulation_setup.pdf
    :alt: Simulation setup
    :width: 90%
    :align: center
@@ -193,7 +193,7 @@ Now that the simulation has run, we can use ``plot2D()`` to see what kind of res
    sim.plot2D(fields=mp.Ez)
    plt.show()
 
-.. figure:: waveguide_figures/2. after first run.pdf
+.. figure:: waveguide_figures/2_after_first_run.pdf
    :alt: After first run
    :width: 90%
    :align: center
@@ -227,7 +227,7 @@ It is nice figure but if you want more control how to figure looks, you could pl
    ax.set_ylabel(r"$y$ (µm)")
    plt.show()
 
-.. figure:: waveguide_figures/3. improved figure.pdf
+.. figure:: waveguide_figures/3_improved_figure.pdf
    :alt: Improved figure
    :width: 90%
    :align: center
@@ -291,7 +291,7 @@ There are multiple ways of doing this but here we choose to inspect the magnitud
 
 This results in the following figure:
 
-.. figure:: waveguide_figures/4. convergence study.pdf
+.. figure:: waveguide_figures/4_convergence_study.pdf
    :alt: Convergence study
    :width: 90%
    :align: center
@@ -404,7 +404,7 @@ And now we create the animation.
 
 Now we have a nice animation! Note that we can observe here how to source turns on gradually, how the PML absorbs the incident field, and also the evanascent fields traveling outside the waveguide! 
 
-.. figure:: waveguide_figures/5. animation.gif
+.. figure:: waveguide_figures/5_animation.gif
    :alt: Convergence study
    :width: 90%
    :align: center
