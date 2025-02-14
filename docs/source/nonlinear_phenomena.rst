@@ -67,7 +67,7 @@ The code used to produce this demo is available at TODO.
 SHG without Dispersion: Perfect Phase Matching
 ----------------------------------------------
 
-First, we will simulate SHG without the presence of dispersion (same refractrive index for all frequencies). The desired simulation behaviour is presented schematically below TODO. We want to place a pump source with wavelength 1064 nm in a :math:`\chi^{(2)}` material, and then measure the output spectrum after propagtion in a 1D simulation. We will use lithium niobate (LiNbO\ :sub:`3`\ ) as the nonlinear material, which is a common material in second order nonlinear optics applications.
+First, we will simulate SHG without the presence of dispersion (same refractive index for all frequencies). The desired simulation behaviour is presented schematically below TODO. We want to place a pump source with wavelength 1064 nm in a :math:`\chi^{(2)}` material, and then measure the output spectrum after propagtion in a 1D simulation. We will use lithium niobate (LiNbO\ :sub:`3`\ ) as the nonlinear material, which is a common material in second order nonlinear optics applications.
 
 First, we import the required libraries and define parameters:
 
@@ -79,7 +79,7 @@ First, we import the required libraries and define parameters:
    from meep.materials import LiNbO3
 
    c = 2.998e8  # speed of light
-   a = 1e-6  # charasteristic length scale
+   a = 1e-6  # charasteristic length scale (m)
 
    # Nd:YAG laser wavelength 1064 nm converted to MEEP frequency units
    f_pump = a/1064e-9
@@ -472,7 +472,7 @@ We have now seen that without dispersion, the SHG power grows quadratically with
 
 The most common way to achieve phase matching in the presence of dispersion is birefringent phase matching. It relies on birefrince (polarization dependence of the refractive index) and the fact that some SHG light is generated with orthogonal polarization with respect to the pump field, resulting from the off-diagonal elements of the :math:`\chi^{(2)}` susceptibility tensor. However, MEEP doesn't support off-diagonal elements of nonlinear susceptibility tensors, and hence it is not possible to simulate birefringent phase matching directly in MEEP.
 
-The second most common phase matching method, quasi-phase matching, can be simulated in MEEP. The idea of quasi-phase matching is to switch the sign of :math:`\chi^{(2)}` after the SHG power has reached the first local maximum of the sinusoidal, leading to continued growth of the SHG power. After that, the sign of :math:`\chi^{(2)}` is swithced repeatedly with the same period. The distance from :math:`z=0` to the first local maximum of the sinusoidal is known as the coherence length, and it is given by :math:`L_c=\frac{\pi}{\Delta k}`.
+The second most common phase matching method, quasi-phase matching, can be simulated in MEEP. The idea of quasi-phase matching is to switch the sign of :math:`\chi^{(2)}` after the SHG power has reached the first local maximum of the sinusoidal, leading to continued growth of the SHG power. After that, the sign of :math:`\chi^{(2)}` is switched repeatedly with the same period. The distance from :math:`z=0` to the first local maximum of the sinusoidal is known as the coherence length, and it is given by :math:`L_c=\frac{\pi}{\Delta k}`.
 
 Next, we modify our simulation function to implement quasi-phase matching. We have made quite a few updates to the function since we first introduced it, so we will show the whole function explicitly this time.
 
@@ -497,7 +497,7 @@ Next, we modify our simulation function to implement quasi-phase matching. We ha
       :param quasi_phase_matching: bool, determines whether quasi-phase matching
       is used
       :param coherence_length: float, if quasi-phase matching is used, determines
-      the length after which sign of chi2 is swithced
+      the length after which sign of chi2 is switched
 
       :return: if flux_spectrum==True, returns tuple the (spectral powers,
       corresponding frequencies), otherwise returns the tuple (SHG powers,
@@ -528,7 +528,7 @@ Next, we modify our simulation function to implement quasi-phase matching. We ha
       if quasi_phase_matching and dispersion:
          default_material = LiNbO3
 
-         # create geometry where sign of chi2 is swithced every
+         # create geometry where sign of chi2 is switched every
          # coherence length
 
          z = source_loc[2]
@@ -685,7 +685,163 @@ The simulation agrees quite well with the theory again. As with the case with di
 Demo 2: Optical Bistability
 ===========================
 
-lorem ipsum
+This demo provides an example simulation of a third order nonlinear effect. We will simulate optical bistability, which is a nonlinear effect arising from the intensity-dependent refractive index in a :math:`\chi^{(3)}` material. In an optically bistable system, the same optical input can lead to two different stable optical outputs, and the output realized is determined by the history of the system. Optical bistability has applications in optical communication and computing, where it can be used as an optical digital memory element.
+
+This demo will discuss the following practical matters of simulation:
+
+- Materials with :math:`\chi^{(3)}` nonlinearity
+- Units with third order nonlinearities
+- Making a simulation with highly customized dynamics: we use a source whose behaviour is determined automatically by the output electric field
+
+The code used to produce this demo is available at TODO.
+
+We begin by introducing the theory of optical bistability. An optically bistable system can be realized with a setup described by the figure below. An input beam with intensity :math:`I_\text{inp}` is injected to a cavity consisting of a :math:`\chi^{(3)}` material, and an output beam with intensity :math:`I_\text{out}` comes out. It is possible to write :math:`I_\text{inp}` as a function of :math:`I_\text{out}` as TODO cite
+
+.. math::
+
+   I_\text{inp}=\left( 1+4 \frac{R}{T^2} \sin^2 \left[ \frac{\omega L}{c} \left( n_0 + n_2 \frac{\alpha I_\text{out}}{T} \right) \right] \right) I_\text{out},
+
+where :math:`R` and :math:`T` are the reflectance and transmittance of the mirrors, respectively, :math:`L` is the cavity length, and :math:`n_0` and :math:`n_2` are the linear and nonlinear refractive indices of the cavity, respectively. The parameter :math:`\alpha` reflects the fact that the total intensity inside the cavity consists of intensities of right and left propagating waves, and an approximation :math:`\alpha \approx 2` can be made TODO cite. For more accurate results, one would have to take standing wave effects into account TODO cite. However, this beyond the scope of our documentation, and we will instead take the practical and slightly unrigorous approach of finding the value of :math:`\alpha` by fitting it to our simulation data.
+
+TODO figure
+
+The above formula is :math:`I_\text{inp}` as a function of :math:`I_\text{out}`, but we are actually interested in finding :math:`I_\text{out}` as a function of :math:`I_\text{inp}`. This is not possible to do analytically, but we can plot :math:`I_\text{inp}` as a function of :math:`I_\text{out}` and then swap the x and y axes to visualize :math:`I_\text{out}` as a function of :math:`I_\text{inp}`. We make this plot after defining our simulation parameters in the code below. We are using a 15 µm block of gallium arsenide (GaAS) as the nonlinear cavity and a laser wavelength of 1550 nm. We don't need to use external mirrors, as the refractive index contrast of GaAs and air provides sufficient reflectance.
+
+.. code-block:: python
+
+   import meep as mp
+   from meep.materials import GaAs
+   import numpy as np
+   import matplotlib.pyplot as plt
+   from scipy.signal import argrelextrema
+
+   c = 2.998e8  # speed of light
+   a = 1e-6  # charasteristic length scale (m)
+
+   L_SI = 15e-6  # length of chi3 cavity (m)
+   lambda_SI = 1550e-9  # laser wavelength (m)
+   omega_SI = 2*np.pi*c/lambda_SI
+   lambda_ = lambda_SI/a  # wavelength in MEEP units
+
+   # linear refractive index at laser frequency
+   n0 = np.sqrt(GaAs.epsilon(1/lambda_)[0,0])
+   # nonlinear refractive index of GaAs in m^2/W. Hales et.al [2]
+   n2_SI = 2e-17
+
+   # reflectivity and transimittivity of GaAs-air interface from Fresnel equation
+   R = ((1-n0)/(1+n0))**2
+   T = 1-R
+
+   # we have found alpha by fitting it to our simulation results (see below)
+   alpha = 1.93
+
+   # calculate input intensity as a function of output intensity
+   I_out_SI = np.linspace(0, 1e15, 1000)
+   phi = omega_SI/c * (n0 + alpha*n2_SI*I_out_SI/T)*L_SI
+   I_inp_SI = (1 + 4*R/T**2*np.sin(phi)**2)*I_out_SI   
+
+   # plot output intensity as a function of input intensity
+   fig, ax = plt.subplots()
+   color = 'tab:blue'
+   ax.plot(I_inp_SI, I_out_SI, '--', color=color)
+
+   # find the discontinuous jumps of output intensity (which correspond
+   # to local maxima and minima of input intensity) and plot lower and
+   # upper arms of the curve with a thicker line
+   discon_idx_incr = argrelextrema(I_inp_SI, np.greater)[0][0]
+   discon_idx_decr = argrelextrema(I_inp_SI, np.less)[0][0]
+   ax.plot(I_inp_SI[:discon_idx_incr], I_out_SI[:discon_idx_incr], linewidth=3, color=color)
+   ax.plot(I_inp_SI[discon_idx_decr:], I_out_SI[discon_idx_decr:], linewidth=3, color=color)
+
+   # add arrows to help visualize the intensity path
+   arrow_width = 1e13
+   ax.arrow(I_inp_SI[discon_idx_incr], I_out_SI[discon_idx_incr]+5e13,0, 3e14,
+            width = arrow_width, color=color)
+   ax.arrow(I_inp_SI[discon_idx_decr], I_out_SI[discon_idx_decr]-5e13,0, -3.5e14,
+            width = arrow_width, color=color)
+   idx1 = 290
+   ax.arrow(I_inp_SI[idx1], I_out_SI[idx1],
+            I_inp_SI[idx1+1]-I_inp_SI[idx1], I_out_SI[idx1+1]-I_out_SI[idx1],
+            width=arrow_width, color=color)
+   idx2 = 800
+   ax.arrow(I_inp_SI[idx2], I_out_SI[idx2],
+            I_inp_SI[idx2]-I_inp_SI[idx2+1], I_out_SI[idx2]-I_out_SI[idx2+1],
+            width=arrow_width, color=color)
+
+   ax.set_xlim([0, 1.7e15])
+   ax.set_ylim([0, 1e15])
+   ax.set_xlabel(r"$I_{inp} \ \left( \frac{\text{W}}{\text{m}^2} \right)$")
+   ax.set_ylabel(r"$I_{out} \ \left( \frac{\text{W}}{\text{m}^2} \right)$")
+
+.. figure:: nonlinear_phenomena_figures/optical_bistability_theory.png
+   :alt: test text
+   :width: 90%
+   :align: center
+
+We can observe that for a certain range of input intensities, the output intensity can have two different stable values, corresponding to the lower and upper arms of the curve. This is the defining behaviour of an optically bistable system.
+
+Next, we will simulate the system described by the first figure in order to achieve optical bistability in MEEP. We use GaAs with predefined dispersion to ensure that there are no phase-matched frequency conversion processes causing unwanted side-effects. The simulation cell and cavity are constructed as follows:
+
+.. code-block:: python
+
+   # define cell
+   pml_size = 1
+   pml_layers = [mp.PML(pml_size)]
+   L = L_SI/a  # length of chi3 cavity in MEEP units
+   cavity_gap = 2  # source-cavity and cavity-ouput monitor gap
+   cell_len = L + 2*pml_size + 2*cavity_gap
+   cell = mp.Vector3(0, 0, cell_len)
+
+   # define cavity with third order nonlinearity
+   cavity_material = GaAs
+   n2 = 0.01  # nonlinear refractive index in MEEP units
+   chi3 = 4/3 * n2*n0**2  # notice lack of epsilon_0 and c due to MEEP units
+   cavity_material.E_chi3_diag = mp.Vector3(chi3, chi3, chi3)  # add third order nonlinearity
+   geometry = [mp.Block(size=mp.Vector3(0,0,L),
+                        center=mp.Vector3(0,0,0),
+                        material=cavity_material)]
+
+Next, we determine the set of input intensities we will use for our source. In order to reconstruct the hysteresis loop of the above figure, we will first increase the input intensity monotonically in discrete steps, and then lower it back to zero after reaching the maximum. We will also place points just before and after the discontinuous jumps predicted by the theory, in order to localize the discontiniuties as accurately as possible.
+
+.. code-block:: python
+
+   I_inp_increasing = np.linspace(0, 3.5, 12)
+
+   # find the discontinuous jumps of output intensity predicted
+   # by the theory. Discontinuities correspond to local maxima
+   # and minima of input intensity.
+   discon_idx_incr = argrelextrema(I_inp_SI, np.greater)[0][0]
+   discon_idx_decr = argrelextrema(I_inp_SI, np.less)[0][0]
+
+   # convert input intensities at discontinuities from SI units
+   # to MEEP units. The conversion is based onthe fact that n_2*I
+   # is dimensionless, so it's value is same in MEEP and SI units.
+   I_inp_discon_incr = I_inp_SI[discon_idx_incr]*n2_SI/n2
+   I_inp_discon_decr = I_inp_SI[discon_idx_decr]*n2_SI/n2
+
+   # determine input intensities just before and after the discontinuity
+   discon_gap = I_inp_increasing.max()/200
+   points_incr = [I_inp_discon_incr - discon_gap/2, I_inp_discon_incr + discon_gap/2]
+   points_decr = [I_inp_discon_decr + discon_gap/2, I_inp_discon_decr - discon_gap/2]
+
+   # put increasing and decreasing intensities to a single vector
+   I_inp_incr = np.sort(np.hstack((I_inp_increasing, points_incr)))
+   I_inp_decr = np.sort(np.hstack((I_inp_increasing, points_decr)))[::-1]
+   I_inp = np.hstack((I_inp_incr, I_inp_decr[1:]))
+
+   # plot the input intensities
+   fig, ax = plt.subplots()
+   ax.plot(I_inp, "o")
+   ax.set_xlabel('index')
+   ax.set_ylabel(r"$I_{inp} \ \left( \text{a.u.} \right)$")
+   fig.set_size_inches(5,4)
+
+.. figure:: nonlinear_phenomena_figures/input_intensities.png
+   :alt: test text
+   :width: 65%
+   :align: center
+
+The set of input intensities are plotted above. Based on the theory, we expect to find the discontinuous jumps between the adjacent points with almost the same intensity.
 
 Conclusions
 ===========
