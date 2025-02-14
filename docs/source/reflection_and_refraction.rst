@@ -1,5 +1,6 @@
+==========
 Refraction
-============
+==========
 
 .. _reflection_and_refraction:
 
