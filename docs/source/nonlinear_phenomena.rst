@@ -57,7 +57,7 @@ This demo provides an example a simulation of nonlinear processes in MEEP with s
 
 This demo will discuss the following practical matters of simulation:
 
-- Materials with :math:`\chi^{(2)}` nonlinearity
+- Simulations with :math:`\chi^{(2)}` nonlinearity
 - Units with second order nonlinearities
 - Resolution convergence analysis
 - Materials with predefined dispersion using `meep.materials library <https://meep.readthedocs.io/en/latest/Materials/>`_
@@ -689,11 +689,13 @@ This demo provides an example simulation of a third order nonlinear effect. We w
 
 This demo will discuss the following practical matters of simulation:
 
-- Materials with :math:`\chi^{(3)}` nonlinearity
-- Units with third order nonlinearities
-- Making a simulation with highly customized dynamics: we use a source whose behaviour is determined automatically by the output electric field
+- Simulations with :math:`\chi^{(3)}` nonlinearity
+- Making a simulation with highly customized dynamics: we use a source whose behaviour is automatically determined by the output intensity
 
 The code used to produce this demo is available at TODO.
+
+Theory of Optical Bistability
+-----------------------------
 
 We begin by introducing the theory of optical bistability. An optically bistable system can be realized with a setup described by the figure below. An input beam with intensity :math:`I_\text{inp}` is injected to a cavity consisting of a :math:`\chi^{(3)}` material, and an output beam with intensity :math:`I_\text{out}` comes out. It is possible to write :math:`I_\text{inp}` as a function of :math:`I_\text{out}` as TODO cite
 
@@ -780,7 +782,10 @@ The above formula is :math:`I_\text{inp}` as a function of :math:`I_\text{out}`,
 
 We can observe that for a certain range of input intensities, the output intensity can have two different stable values, corresponding to the lower and upper arms of the curve. This is the defining behaviour of an optically bistable system.
 
-Next, we will simulate the system described by the first figure in order to achieve optical bistability in MEEP. We use GaAs with predefined dispersion to ensure that there are no phase-matched frequency conversion processes causing unwanted side-effects. The simulation cell and cavity are constructed as follows:
+Setting Up Simulation
+---------------------
+
+Next, we will simulate the system described by the first figure in order to achieve optical bistability in MEEP. We use GaAs with predefined dispersion as the nonlinear cavity to ensure that there are no phase-matched frequency conversion processes causing unwanted side-effects. The simulation cell and cavity are constructed as follows:
 
 .. code-block:: python
 
@@ -801,7 +806,7 @@ Next, we will simulate the system described by the first figure in order to achi
                         center=mp.Vector3(0,0,0),
                         material=cavity_material)]
 
-Next, we determine the set of input intensities we will use for our source. In order to reconstruct the hysteresis loop of the above figure, we will first increase the input intensity monotonically in discrete steps, and then lower it back to zero after reaching the maximum. We will also place points just before and after the discontinuous jumps predicted by the theory, in order to localize the discontiniuties as accurately as possible.
+Next, we determine the set of input intensities we will use for our source. In order to reconstruct the theoretical hysteresis loop of the above figure, we will first increase the input intensity monotonically in discrete steps, and then lower it back to zero after reaching the maximum. We will also place points just before and after the discontinuous jumps predicted by the theory, in order to localize the discontiniuties as accurately as possible.
 
 .. code-block:: python
 
@@ -838,10 +843,276 @@ Next, we determine the set of input intensities we will use for our source. In o
 
 .. figure:: nonlinear_phenomena_figures/input_intensities.png
    :alt: test text
-   :width: 65%
+   :width: 70%
    :align: center
 
-The set of input intensities are plotted above. Based on the theory, we expect to find the discontinuous jumps between the adjacent points with almost the same intensity.
+The set of input intensities are plotted above. Based on the theory, we expect to find the discontinuous jumps in output intensity between the adjacent points with almost the same intensity.
+
+Adaptive Simulation
+-------------------
+
+We have to measure the output intensity corresponding to each input intensity defined above. Perhaps the main challenge of this demo is to set up a simulation where we set the input intensity to the desired value, and then wait for the output intensity to stabilize before measuring it, for each input intensity. It can take some time for the output intensity to stabilize, as we have to wait for the light to bounce around in the cavity many times before stability is reached. The desired simulation behaviour is desrcibed schematically below.
+
+.. figure:: nonlinear_phenomena_figures/optical_bistability_schematic.png
+   :alt: test text
+   :width: 90%
+   :align: center
+
+1. Gradually ramp up input intensity to desired value
+2. Wait for output intensity to stabilize and then measure it
+3. Repeat for each input intensity
+
+The easiest solution would be to wait for a fixed time duration after setting the input intensity. However, we found that it takes significantly longer for the output intensity to stabilize after the two discontinuous jumps than for the rest of the transitions. If we used a fixed duration, we would have to use the duration required for the discontinuous jumps every time, which would be excessively long for most transitions. Hence the best solution is to make an adaptive simulation that automatically detects when the output intensity has stabilized, after which the output intensity is measured and next input intensity transition is started.
+
+We can make an adaptive simulation by making a class whose functions we pass to MEEP. The class is initialized as:
+
+.. code-block:: python
+
+   class simControl:
+      """Class for creating an adaptive simulation, where it is automatically
+      detected when output intensity has stabilized, after which output
+      intensity is measured and next input intensity transition is started.
+      """
+
+      def __init__(self, I_inp, source_freq):
+         """Initialize object.
+         
+         :param I_inp: np.ndarray, vector of input intensities in MEEP units
+         :param source_freq: float, source frequency in MEEP units
+         """
+         
+         # convert intensity to electric field
+         E_inp = np.sqrt(2*I_inp)
+         # convert electric field to source current amplitude
+         # E = Z*current_amplitude/2, where Z = np.sqrt(1/eps) = 1
+         self.input_amps = 2*E_inp
+
+         # current current source amplitude index
+         self.amp_idx = 0
+
+         # initialize output intensities
+         self.I_out = np.zeros(self.input_amps.shape)
+
+         # current time and time index
+         self.t = 0
+         self.ti = 0
+
+         # time duration for gradual input intensity transition
+         self.transition_duration = 500
+         # start time of latest transition
+         self.transition_start_t = 0
+         self.in_transition = False
+         # determines the range of x values of the hyperbolic tangent
+         # shaped transition
+         self.k = 2.5
+
+         self.freq = source_freq
+
+         # initialize list for storing source amplitude envelope
+         self.source_envelope_all = []
+         # initialize list for storing output Poynting vector values
+         self.S_all = []
+         # determines how frequenntly output Poynting vector is measured
+         self.S_measurement_dt = 0.03/self.freq
+         # averaging window length for obtaining output intensity by time
+         # averaging Poynting vector
+         self.S_averaging_window_len = 80/self.freq
+
+         # determines how frequently output intensity stability is measured
+         self.stability_measurement_period = 100
+         # time window length within which the stability is measured
+         self.stability_measurement_window = 500
+         # tolerance for output intensity stability
+         self.stability_tol = 1e-3*I_inp.max()
+         # maximum time to wait before next transition if output intensity
+         # doesn't stabilize naturally
+         self.max_stabilization_t = 10000
+
+The input source of the simulation is controlled by the class. We define the source function in the code below. We are using a hyperbolic tangent function to achieve a smooth transition between two input intensities. The resulting transition can be seen in the above figure. 
+
+.. code-block:: python
+
+      def source_envelope(self, t):
+         """Envelope function of current source. Uses hyperbolic tangent function
+         for creating a smooth transition between two input intensities.
+         
+         :param t: float, time in MEEP units
+         :return: float, envelope value"""
+
+         if self.amp_idx >= self.input_amps.size-1:
+            return 0
+         
+         y = self.input_amps[self.amp_idx]
+
+         if self.in_transition:
+            t_trans = t - self.transition_start_t
+
+            if t_trans >= self.transition_duration:
+                  # if transition is complete, update object internal state
+                  print("transition complete")
+                  self.in_transition = False
+                  y += self.input_amps[self.amp_idx+1] - self.input_amps[self.amp_idx]
+                  self.amp_idx += 1
+
+            else:
+                  # implement hyperbolic tangent transition function
+                  amp_step = self.input_amps[self.amp_idx+1] - self.input_amps[self.amp_idx]
+                  y_step = (amp_step*(np.tanh(2*self.k/self.transition_duration*t_trans - self.k)
+                                    / np.tanh(self.k)+1)/2)
+                  y += y_step
+         
+         return y
+
+      def source_func(self, t):
+         """Current source function.
+         
+         :param t: float, time in MEEP units
+         :return: complex, source value
+         """
+         
+         # update time and time index
+         self.t = t
+         self.ti += 1
+
+         # calculate and store envelope value
+         y = self.source_envelope(t)
+         if self.ti%10000 == 0:
+            self.source_envelope_all.append(y)
+
+         # add phase
+         return y*np.exp(1j*2*np.pi*self.freq*t)
+
+Next, we define a function that measures and stores the output Poyting vector z-component. The Poynting vector is given by 
+
+.. math::
+
+   \mathbf{S} = \mathbf{E} \times \mathbf{H},
+
+where :math:`\mathbf{E}` is the electric field vector and :math:`\mathbf{H}` is the magnetic field's auxiliary field vector. 
+
+.. code-block:: python
+
+      def measure_S_out(self, sim):
+         """Measures output Poynting vector z component
+         
+         :param sim: mp.simulation.Simulation, simulation object
+         """
+
+         # obtain Ex and Hy after the nonlinear cavity
+         Ex = sim.get_field_point(c=mp.Ex, pt=mp.Vector3(0,0,cell_len/2-pml_size)).real
+         Hy = sim.get_field_point(c=mp.Hy, pt=mp.Vector3(0,0,cell_len/2-pml_size)).real
+
+         # calculate and store Sz
+         Sz = Ex*Hy
+         self.S_all.append(Sz)
+
+         # Contrary to the information in the official documentation, it appears that
+         # c=mp.Sz (derived component) isn't supported for get_field_point. We had to
+         # calculate S manually.
+
+Next, we define a function a function that tests if the output intensity has stabilized. The latest output intensities are obtained by time averaging Poyting vector values, since :math:`I = \left< S \right>_t`. Output intensity stability is checked by testing if the maximum variation in the latest output intensities is smaller than the tolerance.
+
+.. code-block:: python
+
+      def output_stability_check(self, sim):
+         """Tests if output intensity has stabilized. First obtains output intensity by
+         time averaging Poynting vector values, and then tests if maximum variation of
+         output intensity is smaller than tolerance.
+         
+         :param sim: mp.simulation.Simulation, simulation object
+         """
+
+         if self.t == 0 or self.in_transition:
+            return
+
+         # obtain latest output intensities by time averaging Poynting vector values
+         dt = self.t / len(self.S_all)
+         N = int(self.stability_measurement_window / dt)
+         S = np.array(self.S_all[-N:])
+         N_window = int(self.S_averaging_window_len/dt)
+         averaging_window = np.ones(N_window)/N_window
+         I = np.convolve(S, averaging_window, mode='valid')
+
+         # output intensity range
+         range_ = I.max()-I.min()
+
+         print(f"progress: {self.amp_idx}/{self.input_amps.size-1}")
+         print("testing stability")
+
+         # test if output intensity has stabilized
+         if (range_ < self.stability_tol or
+            self.t-(self.transition_start_t+self.transition_duration)>self.max_stabilization_t):
+
+            if range_ < self.stability_tol:
+                  print("  stability reached, starting transition")
+            else:
+                  print("  max stabilization time passed, starting transition despite no stabilization")
+            
+            # if output intensity is stabilized, update internal state of object and store
+            # output intensity
+            self.in_transition = True
+            self.transition_start_t = self.t
+            self.I_out[self.amp_idx] = I.mean()
+
+         else:
+            print(f"  not stabilized, range={range_:.5f} > tol={self.stability_tol:.5f}")
+
+Finally, we define a function that tests if all the input intensities have been used, meaning that the simulation is done.
+
+.. code-block:: python
+
+      def simulation_stop_check(self, sim):
+         """Tests if simulation is done, i.e. all input intensities have been
+         used.
+         
+         :param sim: mp.simulation.Simulation, simulation object
+         """
+
+         return self.amp_idx >= self.input_amps.size-1
+
+Now we are ready to use our shiny new class to make a simulation with the desired dynamics. We define the source, controlled by the class, and the simulation object in the code below. We cannot pass functions of the class directly to MEEP, but an easy workaround to use a lambda function that executes the class function.
+
+.. code-block:: python
+
+   # define object for controlling simulation
+   sim_control = simControl(I_inp=I_inp, source_freq=1/lambda_)
+
+   # define source
+   source_func = lambda sim: sim_control.source_func(sim)
+   sources = [mp.Source(mp.CustomSource(source_func, end_time=mp.inf),
+                        component=mp.Ex,
+                        center=mp.Vector3(0,0, -cell_len/2+pml_size))]
+
+   # define simulation object
+   resolution = 512
+   sim = mp.Simulation(
+      cell_size=cell,
+      sources=sources,
+      boundary_layers=pml_layers,
+      geometry=geometry,
+      resolution=resolution,
+      dimensions=1,
+   )
+
+We are using a resolution 512, for which the simulation takes around half an hour to run. We do not perform a resolution convergence analysis explicitly here, but we have verified that the simulation has pretty much converged at the resolution of 512. Even higher resolutions could be used for slightly better convergence, but that would take longer to run.
+
+Finally, we can run the simulation. We pass out custom functions for measuring the Poynting vector, testing output intensity stability, and testing if the simulation is done to the simulation as follows:
+
+.. code-block:: python
+
+   measure_func = lambda sim: sim_control.measure_S_out(sim)
+   stability_func = lambda sim: sim_control.output_stability_check(sim)
+   stop_func = lambda sim: sim_control.simulation_stop_check(sim)
+
+   # custom functions can be used during the simulation with at_every function
+   sim.run(mp.at_every(sim_control.S_measurement_dt, measure_func),
+         mp.at_every(sim_control.stability_measurement_period, stability_func),
+         until=stop_func)
+
+Results
+-------
+
+
 
 Conclusions
 ===========
