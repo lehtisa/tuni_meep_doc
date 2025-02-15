@@ -725,7 +725,7 @@ The above formula is :math:`I_\text{inp}` as a function of :math:`I_\text{out}`,
    omega_SI = 2*np.pi*c/lambda_SI
    lambda_ = lambda_SI/a  # wavelength in MEEP units
 
-   # linear refractive index at laser frequency
+   # linear refractive index at laser frequency, n0 = 3.37
    n0 = np.sqrt(GaAs.epsilon(1/lambda_)[0,0])
    # nonlinear refractive index of GaAs in m^2/W. Hales et.al [2]
    n2_SI = 2e-17
@@ -858,13 +858,13 @@ We have to measure the output intensity corresponding to each input intensity de
    :width: 90%
    :align: center
 
-1. Gradually ramp up input intensity to desired value
-2. Wait for output intensity to stabilize and then measure it
-3. Repeat for each input intensity
+(1) Gradually ramp up input intensity to desired value
+(2) Wait for output intensity to stabilize and then measure it
+(3) Repeat for each input intensity
 
-The easiest solution would be to wait for a fixed time duration after setting the input intensity. However, we found that it takes significantly longer for the output intensity to stabilize after the two discontinuous jumps than for the rest of the transitions. If we used a fixed duration, we would have to use the duration required for the discontinuous jumps every time, which would be excessively long for most transitions. Hence the best solution is to make an adaptive simulation that automatically detects when the output intensity has stabilized, after which the output intensity is measured and next input intensity transition is started.
+The easiest solution would be to wait for a fixed time duration after setting the input intensity. However, we have found that it takes significantly longer for the output intensity to stabilize after the two discontinuous jumps than for the rest of the transitions. If we used a fixed duration, we would have to use the duration required for the discontinuous jumps every time, which would be excessively long for most transitions. Hence the best solution is to make an adaptive simulation that automatically detects when the output intensity has stabilized, after which the output intensity is measured and next input intensity transition is started.
 
-We can make an adaptive simulation by making a class whose functions we pass to MEEP. The class is initialized as:
+We can make an adaptive simulation by making a custom class whose functions we pass to MEEP. The class is initialized as:
 
 .. code-block:: python
 
@@ -881,7 +881,8 @@ We can make an adaptive simulation by making a class whose functions we pass to 
          :param source_freq: float, source frequency in MEEP units
          """
          
-         # convert intensity to electric field
+         # convert intensity to electric field (note lack of c and epsilon_0
+         # due to MEEP units)
          E_inp = np.sqrt(2*I_inp)
          # convert electric field to source current amplitude
          # E = Z*current_amplitude/2, where Z = np.sqrt(1/eps) = 1
@@ -928,7 +929,7 @@ We can make an adaptive simulation by making a class whose functions we pass to 
          # doesn't stabilize naturally
          self.max_stabilization_t = 10000
 
-The input source of the simulation is controlled by the class. We define the source function in the code below. We are using a hyperbolic tangent function to achieve a smooth transition between two input intensities. The resulting transition can be seen in the above figure. 
+The input source of the simulation is controlled by the class. We define the source function in the code below. We are using a hyperbolic tangent function to achieve a smooth transition between two input intensities. The shape of the resulting transition can be seen in the above figure. 
 
 .. code-block:: python
 
@@ -982,7 +983,7 @@ The input source of the simulation is controlled by the class. We define the sou
          # add phase
          return y*np.exp(1j*2*np.pi*self.freq*t)
 
-Next, we define a function that measures and stores the output Poyting vector z-component. The Poynting vector is given by 
+Next, we define a function that measures and stores the output Poyting vector's z-component. The Poynting vector is given by 
 
 .. math::
 
@@ -1046,7 +1047,8 @@ Next, we define a function a function that tests if the output intensity has sta
             if range_ < self.stability_tol:
                   print("  stability reached, starting transition")
             else:
-                  print("  max stabilization time passed, starting transition despite no stabilization")
+                  print("  max stabilization time passed")
+                  print("  starting transition despite no stabilization")
             
             # if output intensity is stabilized, update internal state of object and store
             # output intensity
@@ -1096,7 +1098,7 @@ Now we are ready to use our shiny new class to make a simulation with the desire
 
 We are using a resolution 512, for which the simulation takes around half an hour to run. We do not perform a resolution convergence analysis explicitly here, but we have verified that the simulation has pretty much converged at the resolution of 512. Even higher resolutions could be used for slightly better convergence, but that would take longer to run.
 
-Finally, we can run the simulation. We pass out custom functions for measuring the Poynting vector, testing output intensity stability, and testing if the simulation is done to the simulation as follows:
+Finally, we can run the simulation. We pass our custom functions for measuring the Poynting vector, testing output intensity stability, and testing if the simulation is done to the simulation as follows:
 
 .. code-block:: python
 
@@ -1112,7 +1114,81 @@ Finally, we can run the simulation. We pass out custom functions for measuring t
 Results
 -------
 
+We will first plot the input and output intensities as a function of time. This is done as follows:
 
+.. code-block:: python
+
+   # time vectors corresponding to Poynting values and source envelope
+   t_S = np.linspace(0,sim_control.t, len(sim_control.S_all))
+   t_source = np.linspace(0,sim_control.t, len(sim_control.source_envelope_all))
+
+   # obtain output intensities by time averaging Poyting vector values
+   dt = sim_control.t / len(sim_control.S_all)
+   N_window = int(sim_control.S_averaging_window_len/dt)
+   averaging_window = np.ones(N_window)/N_window
+   I_out_envelope = np.convolve(sim_control.S_all, averaging_window, mode='same')
+
+   # convert source current amplitudes to input intensities. Uses equations
+   # I=1/2*E^2 (note lack of c and epsilon_0 due to MEEP units and n=1) and
+   # E = Z*current_amplitude/2, where Z = np.sqrt(1/eps) = 1
+   I_inp_envelope = 1/8 * np.array(sim_control.source_envelope_all)**2
+
+   # time conversion factor from MEEP units to seconds
+   time_conversion = a/c
+
+   # plot input and output intensities as a function of time
+   fig, ax = plt.subplots()
+   ax.plot(t_source*time_conversion, I_inp_envelope*n2, label='input')
+   ax.plot(t_S*time_conversion, I_out_envelope*n2, label='output')
+   ax.set_xlim([0, t_S[-1]*time_conversion])
+   ax.set_ylim([0, 1.05*n2*I_inp.max()])
+   ax.set_xlabel('time (s)')
+   ax.set_ylabel('intensity (a.u.)')
+   ax.grid()
+   ax.legend()
+
+.. figure:: nonlinear_phenomena_figures/intensity_time.png
+   :alt: test text
+   :width: 90%
+   :align: center
+
+We can see that the simulation is behaving exactly as desired! We are increasing and decreasing the input intensity in small smooth steps, and waiting for the output intensity to stabilize before starting the next step. Also, the sudden jumps in output intensity occurs during the tiny steps in input intensity, which is the results we expected.
+
+We can already see that for some input intensities the output intensity is different when increasing or decreasing the intensity. However, this can be visualized more clearly by plotting the output intensity as a function of input intensity. We will do this and compare the simulation result to theory below. We can conveniently sidestep the unit conversion of intensities by expressing the intensity in terms of the dimensionless product :math:`n_2 I`, since it's value is the same in MEEP and SI units.
+
+.. code-block:: python
+
+   # plot MEEP result and theory
+   fig, ax = plt.subplots()
+   ax.plot(n2*I_inp, n2*sim_control.I_out, 'o-', label="MEEP", linewidth=2,
+         markersize=4, color='tab:green')
+   ax.plot(n2_SI*I_inp_SI, n2_SI*I_out_SI, 'k:', label="theory", linewidth=2)
+   ax.set_xlim([0, np.max(n2*I_inp)])
+   ax.set_ylim([0,0.02])
+   ax.set_xlabel(r"$n_2I_{input}$")
+   ax.set_ylabel(r"$n_2I_{output}$")
+   ax.legend()
+
+   # add arrows to help visualize intensity path
+   arrow_coords = [[0.005, 0.0007], [0.0165, 0.0035], [0.0243, 0.0095], [0.027, 0.0167],
+                   [0.032, 0.0193], [0.02, 0.0176], [0.0128, 0.012], [0.009, 0.00395]]
+   arrow_dirs = [[0.01, 0.0029], [0.01, 0.0038], [0, 1], [0.01, 0.0014],
+                 [-0.01, -0.0014], [-0.01, -0.0029], [0, -1], [-0.01, -0.0029]]
+   arrow_len = 0.005
+   for coord, dir in zip(arrow_coords, arrow_dirs):
+      x, y = coord
+      dir = np.array(dir)
+      dir = arrow_len*dir/np.linalg.norm(dir)
+      delta_x, delta_y = dir
+      ax.arrow(x, y, delta_x, delta_y, width=0.00005,
+               head_width=0.0004, color='tab:gray')
+
+.. figure:: nonlinear_phenomena_figures/hysteresis_loop.png
+   :alt: test text
+   :width: 90%
+   :align: center
+
+We have achieved optical bistability in MEEP! We have successfully reconstructed the hysteresis loop predicted by the theory. The agreement between MEEP and theory is seemingly good, however, it is important to keep in mind that we have fitted the :math:`\alpha` parameter of the theory to the simulation result, as finding the parameter analytically is beyond the scope of our documentation. Hence we cannot conclude that the values given by the simulation are matching the theory, but we can conclude that the functional form of the simulated curve is matching the form of the theoretical curve.
 
 Conclusions
 ===========
