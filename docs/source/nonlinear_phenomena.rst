@@ -62,7 +62,7 @@ This demo will discuss the following practical matters of simulation:
 - Resolution convergence analysis
 - Materials with predefined dispersion using `meep.materials library <https://meep.readthedocs.io/en/latest/Materials/>`_
 
-The code used to produce this demo is available on `GitHub <https://github.com/lehtisa/tuni_meep_doc/blob/main/demo_codes/second_harmonic_generation.ipynb>_`.
+The code used to produce this demo is available on `GitHub <https://github.com/lehtisa/tuni_meep_doc/blob/main/demo_codes/second_harmonic_generation.ipynb>`_.
 
 SHG without Dispersion: Perfect Phase Matching
 ----------------------------------------------
@@ -227,7 +227,7 @@ We can observe that without nonlinearities, there is only a single peak correspo
 
 We have chosen the parameters such that the SHG field has more than two orders of magnitude less power than the pump field. This means that we can safely use the undepleted pump assumption, which makes our treatment slightly simpler.
 
-So far, everything we have done follows closely the `example simulation on third harmonic generation <https://meep.readthedocs.io/en/latest/Python_Tutorials/Third_Harmonic_Generation/>`_ from the official documentation. Next, we will expand on the official example and study the evolution of the SHG field during propagation. We will place multiple monitors along the propagation length that measure the power at twice the initial frequency. Also, we will measure the initial pump power for reference. This is achieved by modifying the simulation function as follows. The new parameter :code:`flux_spectrum` determines whether the output spectrum or evolution of SHG field is measured and returned. We have written explicitly only those parts of the function that are modified. The full simulation script is available on `GitHub <https://github.com/lehtisa/tuni_meep_doc/blob/main/demo_codes/second_harmonic_generation.ipynb>_`.
+So far, everything we have done follows closely the `example simulation on third harmonic generation <https://meep.readthedocs.io/en/latest/Python_Tutorials/Third_Harmonic_Generation/>`_ from the official documentation. Next, we will expand on the official example and study the evolution of the SHG field during propagation. We will place multiple monitors along the propagation length that measure the power at twice the initial frequency. Also, we will measure the initial pump power for reference. This is achieved by modifying the simulation function as follows. The new parameter :code:`flux_spectrum` determines whether the output spectrum or evolution of SHG field is measured and returned. We have written explicitly only those parts of the function that are modified. The full simulation script is available on `GitHub <https://github.com/lehtisa/tuni_meep_doc/blob/main/demo_codes/second_harmonic_generation.ipynb>`_.
 
 .. code-block:: python
 
@@ -709,7 +709,7 @@ This demo will discuss the following practical matters of simulation:
 - Simulations with :math:`\chi^{(3)}` nonlinearity
 - Making a simulation with highly customized dynamics: we use a source whose behaviour is automatically determined by the output intensity
 
-The code used to produce this demo is available on `GitHub <https://github.com/lehtisa/tuni_meep_doc/blob/main/demo_codes/optical_bistability.ipynb>_`.
+The code used to produce this demo is available on `GitHub <https://github.com/lehtisa/tuni_meep_doc/blob/main/demo_codes/optical_bistability.ipynb>`_.
 
 Theory of Optical Bistability
 -----------------------------
