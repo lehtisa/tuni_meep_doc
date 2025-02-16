@@ -1,5 +1,6 @@
+==========
 Refraction
-============
+==========
 
 .. _reflection_and_refraction:
 
@@ -94,7 +95,7 @@ Now we run the simulation until 75. This time is long enough because then the wa
    :width: 90%
    :align: center
 
-To estimate the focal length we examine the electric field at the middle of the cell in y-direction and from after the lens until the right side PML layer in x-direction by using get_array and defining corresponding center and size. The values of the fields are spaced equally so we can create the distance from the lens using linspace. We take both z-component of the electric field and x component of the Poynting vector to show how they relate to intensity. We also calcute the ratio of square of Ez and Sx. Then we plot the values to visualize them and save the figure using savefig.
+To estimate the focal length we examine the electric field at the middle of the cell in y-direction and from after the lens until the right side PML layer in x-direction by using get_array and defining corresponding center and size. The values of the fields are spaced equally so we can create the distance from the lens using linspace. We take both z-component of the electric field and x component of the Poynting vector to show how they relate to intensity. We also calcute the ratio of square of Ez and Sx. A numeric value of focal length is obtained by taking the index of maximum value of Sx and taking the value of distance corresponding to that index. Then we plot the values to visualize them and save the figure using savefig. The numeric value of focal length is shown in the title of the legend.
 
 .. code-block :: python
 
@@ -109,12 +110,14 @@ To estimate the focal length we examine the electric field at the middle of the 
         Ez2Sx.append(abs(center_dataEz[i])**2/abs(center_dataSx[i]))
         i = i+1
 
+    focal_length = pointsSx[np.argmax(center_dataSx)]
+
     plt.figure()
     plt.plot(pointsEz, abs(center_dataEz), label='Ez')
     plt.plot(pointsEz, abs(center_dataEz) ** 2, label='Ez**2')
     plt.plot(pointsSx, abs(center_dataSx), label='Sx')
     plt.plot(pointsSx, Ez2Sx, label='Ez**2/Sx')
-    plt.legend(loc="upper right")
+    plt.legend(loc="upper right", title="f = {:.2f}".format(focal_length))
     plt.savefig("Intensity_after_lens.png")
     plt.show()
 
@@ -139,11 +142,11 @@ We can create animation of the simulation using Animate2D object and at_every fu
     filename = "./Lens_animation.mp4"
     Animate.to_mp4(10, filename)
 
-We notice the ratio of :math:`E_{z}^{2}` and :math:`S_{x}` is 2 other than at the close vicinity from the lens where there is a lot of error. Intensity is defined as the magnitude of the Poynting vector but also corresponds to the square of the electric field:
+We notice the ratio of :math:`\left|E_{z}\right|^{2}` and :math:`S_{x}` is 2 other than at the close vicinity from the lens where there is a lot of error. Intensity is defined as the magnitude of the Poynting vector but also corresponds to the square of the electric field:
 
 .. math::
 
-    \frac{1}{2}cn\varepsilon_{0}\abs{E}^{2}
+    \frac{1}{2}cn\varepsilon_{0}\left|{E}\right|^{2}
 
 In meep speed of light and vacuum permittivity are defined as 1. Thus the square of Ez is twice as large as Sz as it should be.
 
@@ -153,13 +156,13 @@ Focal length depeds on refractive index and curvature of the lens according to L
 
     \frac{1}{f}=(n-1)\left(\frac{1}{R_{1}}-\frac{1}{R_{2}}+\frac{(n-1)d}{nR_{1}R_{2}}\right)
 
-In this simulation we have a simple case where only one of the surfaces is spherical, while the other one is flat. Thus :math:`R_{2}=\infty` and the equation simplify to
+In this simulation we have a simple case where only one of the surfaces is spherical, while the other one is flat. Thus :math:`R_{2}=\infty` and the equation simplify to:
 
 .. math::
 
     f=\frac{R_{1}}{n-1}
 
-The focal length is the length in the plot where the maximum intensity is reached. There is some error compared to Lens-Maker's equation because Lens-Maker's equation is based on geometrical optics, where MEEP does wave optics. MEEP takes into account effects such as diffraction, interference and near-field effects. Also reflection at the lens could cause error. Lens-Maker's equation assumes paraxial approximation. Thus the there is more error for thicker lens with larger radius where the angle of incidence is larger. The resolution used in the simulation can also limit the accuracy.
+The focal length is the length in the plot where the maximum intensity is reached. There is some error compared to Lens-Maker's equation because Lens-Maker's equation is based on geometrical optics, where MEEP does wave optics. MEEP takes into account effects such as diffraction, interference, near-field effects and reflection at the lens' surface. In our simulation the size of lens is only around 10 times the wavelength so the lens we consider is microscopic, which causes these phenomena have more effect. MEEP could be used to simulate larger lens, but the simulation times might grow long. In MEEP the legths are defined as fractions so by keeping the geometry the same and increasing frequency (decreasing wavelength) of the source we can simulate larger lens size. The resolution used in the simulation can limit the accuracy. When increasing the frequency, we need to increase the resolution to keep the results reasonable. Lens-Maker's equation assumes paraxial approximation. Thus the there is more error for thicker lens with smaller radius where the angle of incidence is larger.
 
 Demo 2: Luneburg lens
 =====================
