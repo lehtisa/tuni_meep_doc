@@ -7,7 +7,7 @@ Nonlinear Effects
 Introduction
 ============
 
-MEEP supports nonlinear optical simulations via materials with user defined :math:`\chi^{(2)}` or :math:`\chi^{(3)}` nonlinear susceptibilities. In this section, we will provide example simulations of both second and third order nonlinear effects: second harmonic generation under different phase matching conditions and optical bistability. We hope these examples will be useful for new MEEP users looking to simulate nonlinear effects, as the official MEEP documentation provides only a single `example simulation on nonlinearities <https://meep.readthedocs.io/en/latest/Python_Tutorials/Third_Harmonic_Generation/>`_.
+Meep supports nonlinear optical simulations via materials with user defined :math:`\chi^{(2)}` or :math:`\chi^{(3)}` nonlinear susceptibilities. In this section, we will provide example simulations of both second and third order nonlinear effects: second harmonic generation under different phase matching conditions and optical bistability. We hope these examples will be useful for new Meep users looking to simulate nonlinear effects, as the official Meep documentation provides only a single `example simulation on nonlinearities <https://meep.readthedocs.io/en/latest/Python_Tutorials/Third_Harmonic_Generation/>`_.
 
 First, we will give a very brief introduction on nonlinear optics. Within the linear regime where the optical electric field :math:`\tilde{E}` is not very large, the material polarization :math:`\tilde{P}` is given by
 
@@ -29,7 +29,7 @@ If we write the optical electric field as the sum of a complex field and it's co
 
    \tilde{P}^{(2)} = \varepsilon_0  \chi^{(2)} \tilde{E}^2 = \varepsilon_0  \chi^{(2)} \left(E^2 e^{-\mathrm{i} 2\omega t} + (E^*)^2 e^{\mathrm{i} 2\omega t} + \lvert E \rvert ^2 \right).
 
-We notice that the first and second term inside the brackets are complex conjugates of each other, so the imaginary part cancles out and we are left with a term that is oscillating at twice the initial frequency. The oscillating polarization acts as a new source of light, and therefore frequency doubled light is generated! This phenomenon is known as second harmonic generation, and we will study it closer in demo 1.
+We notice that the first and second term inside the brackets are complex conjugates of each other, so the imaginary part cancels out and we are left with a term that is oscillating at twice the initial frequency. The oscillating polarization acts as a new source of light, and therefore frequency doubled light is generated! This phenomenon is known as second harmonic generation, and we will study it closer in demo 1.
 
 We can expand the third order nonlinear polarization in a similar way. If we do this and examine only the term that is oscillating at the incident frequency :math:`\omega`, we obtain
 
@@ -43,7 +43,7 @@ Now the total polarization oscillating at :math:`\omega` consists of the regular
 
    \tilde{P}^{\mathrm{tot}}(\omega) = \varepsilon_0 \chi^{(1)} E e^{-\mathrm{i} \omega t} + 3\varepsilon_0  \chi^{(3)}  \lvert E \rvert ^2 E e^{-\mathrm{i} \omega t} = \varepsilon_0 \left(  \chi^{(1)}  + 3 \chi^{(3)}  \lvert E \rvert ^2 \right) E e^{-\mathrm{i} \omega t} = \varepsilon_0 \chi_{\mathrm{eff}} E e^{-\mathrm{i} \omega t},
 
-where we have defined an effective susceptibility :math:`\chi_{\mathrm{eff}}=\chi^{(1)}  + 3 \chi^{(3)}  \lvert E \rvert ^2` as the sum of linear and nonlinear contributions. If we recall that in general, the refractive index is given by :math:`n=\sqrt{1+\chi}` and that the intensity of the light is proportional to :math:`\lvert E \rvert ^2`, we can observe that intensity of the light affects the effective refractive index experienced by the light! This effect is known as an intensity-dependent refractive index or self-phase modulation, and we will examine one concequence of it, optical bistability, in demo 2.
+where we have defined an effective susceptibility :math:`\chi_{\mathrm{eff}}=\chi^{(1)}  + 3 \chi^{(3)}  \lvert E \rvert ^2` as the sum of linear and nonlinear contributions. If we recall that in general, the refractive index is given by :math:`n=\sqrt{1+\chi}` and that the intensity of the light is proportional to :math:`\lvert E \rvert ^2`, we can observe that intensity of the light affects the effective refractive index experienced by the light! This effect is known as an intensity-dependent refractive index or self-phase modulation, and we will examine one consequence  of it, optical bistability, in demo 2.
 
 .. note::
 
@@ -53,7 +53,7 @@ where we have defined an effective susceptibility :math:`\chi_{\mathrm{eff}}=\ch
 Demo 1: Second Harmonic Generation
 ==================================
 
-This demo provides an example a simulation of nonlinear processes in MEEP with second harmonic generation (SHG). It is a second order nonlinear process, where light with frequency :math:`\omega` is injected to a material with a second order nonlinear susceptibility :math:`\chi^{(2)}`, and new light with frequency :math:`2 \omega` is generated. We have used the `example simulation on third harmonic generation <https://meep.readthedocs.io/en/latest/Python_Tutorials/Third_Harmonic_Generation/>`_ from the official documentation as a starting point for this demo, but we will expand on it significantly by studying the evolution of the second harmonic field during propagation under different phase matching conditions.
+This demo provides an example a simulation of nonlinear processes in Meep with second harmonic generation (SHG). It is a second order nonlinear process, where light with frequency :math:`\omega` is injected to a material with a second order nonlinear susceptibility :math:`\chi^{(2)}`, and new light with frequency :math:`2 \omega` is generated. We have used the `example simulation on third harmonic generation <https://meep.readthedocs.io/en/latest/Python_Tutorials/Third_Harmonic_Generation/>`_ from the official documentation as a starting point for this demo, but we will expand on it significantly by studying the evolution of the second harmonic field during propagation under different phase matching conditions.
 
 This demo will discuss the following practical matters of simulation:
 
@@ -86,7 +86,7 @@ First, we import the required libraries and define parameters:
    c = 2.998e8  # speed of light
    a = 1e-6  # charasteristic length scale (m)
 
-   # Nd:YAG laser wavelength 1064 nm converted to MEEP frequency units
+   # Nd:YAG laser wavelength 1064 nm converted to Meep frequency units
    f_pump = a/1064e-9
 
    # permittivity at source frequency. The .epsilon() returns the
@@ -168,11 +168,11 @@ Next, we define a simulation function that propagates the input pulse in a :math
 
       return np.array(trans_flux), np.array(freqs)
 
-Next, we determine the value of :math:`\chi^{(2)}` we will use for our material. It turns out that if we define :math:`\chi^{(2)}` in terms of the dimensionless product :math:`\chi^{(2)}E_\text{pump}`, where :math:`E_\text{pump}` is the pump amplitude, we will spare ourselves the effort of converting the value of :math:`\chi^{(2)}` from MEEP natural units to SI units when comparing simulation results to theoretical predictions later, since the value of the dimensionless product is the same regardless unit system. We choose :math:`\chi^{(2)}E_\text{pump}=0.003`, and then we have to find the value of :math:`E_\text{pump}` in MEEP units and set :math:`\chi^{(2)}=\frac{0.003}{E_\text{pump}}`.
+Next, we determine the value of :math:`\chi^{(2)}` we will use for our material. It turns out that if we define :math:`\chi^{(2)}` in terms of the dimensionless product :math:`\chi^{(2)}E_\text{pump}`, where :math:`E_\text{pump}` is the pump amplitude, we will spare ourselves the effort of converting the value of :math:`\chi^{(2)}` from Meep natural units to SI units when comparing simulation results to theoretical predictions later, since the value of the dimensionless product is the same regardless unit system. We choose :math:`\chi^{(2)}E_\text{pump}=0.003`, and then we have to find the value of :math:`E_\text{pump}` in Meep units and set :math:`\chi^{(2)}=\frac{0.003}{E_\text{pump}}`.
 
-Note that we are using this procedure to deal with the units, not (only) because we are too lazy to convert from MEEP units to SI units, but mainly because it follows the spirit of the official recommended way of dealing with units in nonlinearities. Units of second order nonlinearities are not explicitly discussed in the official documentation, but our approach aligns closely with the `official recommended procedure for Kerr nonlinearities <https://meep.readthedocs.io/en/latest/Units_and_Nonlinearity/#kerr-nonlinearities>`_. If you ever find yourself in an situation where you need to convert units of electric fields or nonlinear susceptibilities from MEEP units to SI units, it is highly likely that you don't actually need to do so and you should instead look for a way of expressing the quantity as a dimensionless ratio or product.
+Note that we are using this procedure to deal with the units, not (only) because we are too lazy to convert from Meep units to SI units, but mainly because it follows the spirit of the official recommended way of dealing with units in nonlinearities. Units of second order nonlinearities are not explicitly discussed in the official documentation, but our approach aligns closely with the `official recommended procedure for Kerr nonlinearities <https://meep.readthedocs.io/en/latest/Units_and_Nonlinearity/#kerr-nonlinearities>`_. If you ever find yourself in a situation where you need to convert units of electric fields or nonlinear susceptibilities from Meep units to SI units, it is highly likely that you don't actually need to do so and you should instead look for a way of expressing the quantity as a dimensionless ratio or product.
 
-We will use a Gaussian source with current amplitude :math:`J=1`. Because sources in MEEP are current sources, we have to calculate the resulting electric field amplitude when the current is oscillating at the chosen amplitude. In our 1D simulation, the electric amplitude field is given by :math:`E_\text{pump}=\frac{1}{2}ZJ`, where :math:`Z=\sqrt{\frac{\mu}{\varepsilon}}` is the impedance of the medium (note that :math:`\mu=1` in MEEP units) and the factor :math:`\frac{1}{2}` appears because the electric field is split equally between left and and right propagating parts. Note that `there is no general formula for relating current amplitude and electric field amplitude <https://meep.readthedocs.io/en/latest/FAQ/#how-does-the-current-amplitude-relate-to-the-resulting-field-amplitude>`_ in higher dimension, and we can relate them with the above formula only because we are working with a 1D simulation.
+We will use a Gaussian source with current amplitude :math:`J=1`. Because sources in Meep are current sources, we have to calculate the resulting electric field amplitude when the current is oscillating at the chosen amplitude. In our 1D simulation, the electric amplitude field is given by :math:`E_\text{pump}=\frac{1}{2}ZJ`, where :math:`Z=\sqrt{\frac{\mu}{\varepsilon}}` is the impedance of the medium (note that :math:`\mu=1` in Meep units) and the factor :math:`\frac{1}{2}` appears because the electric field is split equally between left and right propagating parts. Note that `there is no general formula for relating current amplitude and electric field amplitude <https://meep.readthedocs.io/en/latest/FAQ/#how-does-the-current-amplitude-relate-to-the-resulting-field-amplitude>`_ in higher dimension, and we can relate them with the above formula only because we are working with a 1D simulation.
 
 Finally, we are using a Gaussian source, but the theory on SHG we will soon encounter assumes a plane wave source. It turns out the Gaussian peak amplitude can be converted to an effective plane wave amplitude by dividing by :math:`\sqrt{2}`. Using all this information, are now ready to determine the value of :math:`\chi^{(2)}` as follows:
 
@@ -184,7 +184,7 @@ Finally, we are using a Gaussian source, but the theory on SHG we will soon enco
    E /= np.sqrt(2)  # Gaussian source
 
    chi2_E_prod = 0.003  # dimensionless product
-   chi2 = chi2_E_prod / E  # in MEEP units
+   chi2 = chi2_E_prod / E  # in Meep units
 
 We can now run the simulation. We will first obtain a reference power spectrum without nonlinearities by setting :math:`\chi^{(2)}=0`, after which the simulation is repeated with the desired :math:`\chi^{(2)}` value. We will use a resolution 256 for now, but we will examine the effect of resolution more closely later.
 
@@ -202,7 +202,7 @@ The results of the simulation are then plotted as follows:
 
    fig, ax = plt.subplots()
 
-   # convert frequencies from MEEP units to SI units
+   # convert frequencies from Meep units to SI units
    freqs_SI = freqs * c/a
 
    norm = np.max(reference_trans_flux)
@@ -301,32 +301,32 @@ Next, we will run the new simulation function and obtain the SHG power at multip
 
    shg_powers = np.array(shg_powers)
 
-We will compare the MEEP simulation to the analytical expression predicted by the theory. Starting from Maxwell's equations, it can be shown that the propagation evolution of the SHG intensity :math:`I_2` is given by `[1, p. 73] <https://tuni-meep-doc.readthedocs.io/en/latest/nonlinear_phenomena.html#references>`_
+We will compare the Meep simulation to the analytical expression predicted by the theory. Starting from Maxwell's equations, it can be shown that the propagation evolution of the SHG intensity :math:`I_2` is given by `[1, p. 73] <https://tuni-meep-doc.readthedocs.io/en/latest/nonlinear_phenomena.html#references>`_
 
 .. math::
 
    I_2(z)= \frac{\omega_1^2 ( \chi^{(2)} )^2}{2 \varepsilon_0 n_0^3 c^3} I_1^2 z^2,
 
-where :math:`\omega_1` and :math:`I_1` are the pump frequency and intensity, :math:`n_0` is the refractive index, and :math:`z` is the propagation distance. The SHG intensity is expected to grow quadratically as a function propagation distance when no dispersion is present. `It is recommended to use real E-fields in MEEP simulations involving nonlinearities <https://meep.readthedocs.io/en/latest/Materials/#nonlinearity>`_, for which the relation :math:`I=\frac{1}{2} \varepsilon_0 n_0 c E^2` holds. Using this relation, the above equation can be written as
+where :math:`\omega_1` and :math:`I_1` are the pump frequency and intensity, :math:`n_0` is the refractive index, and :math:`z` is the propagation distance. The SHG intensity is expected to grow quadratically as a function propagation distance when no dispersion is present. `It is recommended to use real E-fields in Meep simulations involving nonlinearities <https://meep.readthedocs.io/en/latest/Materials/#nonlinearity>`_, for which the relation :math:`I=\frac{1}{2} \varepsilon_0 n_0 c E^2` holds. Using this relation, the above equation can be written as
 
 .. math::
 
    \frac{I_2}{I_1} = \frac{P_2}{P_1} = \frac{\omega_1^2}{4 n_0^2 c^2} \left(\chi^{(2)}E_\text{pump}\right)^2 z^2,
 
-where P is the optical power. The equation is now in a form where it is convenient to convert between MEEP units and SI units; the ratio on the left side is dimensionless so it's value is independent of units, and the right side features the dimensionless product :math:`\chi^{(2)}E_\text{pump}` whose value is also the same in MEEP units and SI units.
+where P is the optical power. The equation is now in a form where it is convenient to convert between Meep units and SI units; the ratio on the left side is dimensionless so it's value is independent of units, and the right side features the dimensionless product :math:`\chi^{(2)}E_\text{pump}` whose value is also the same in Meep units and SI units.
 
-We can now plot a comparison of the MEEP simulation results and theory prediction:
+We can now plot a comparison of the Meep simulation results and theory prediction:
 
 .. code-block:: python
 
    fig, ax = plt.subplots()
 
-   # plot the power ratio simulated in MEEP
+   # plot the power ratio simulated in Meep
    ax.plot(z, shg_powers.T/pump_power, label=resolutions)
 
    # calculate power ratio predictedy by theory
    z_theory = np.linspace(0, z[-1]*a, 200)
-   f_pump_SI = f_pump * c/a  # convert f from MEEP units to SI units
+   f_pump_SI = f_pump * c/a  # convert f from Meep units to SI units
    omega_pump_SI = 2*np.pi*f_pump_SI
    power_ratio_theory = omega_pump_SI**2 / (4*n0**2*c**2) * (chi2_E_prod)**2 * z_theory**2
 
@@ -338,7 +338,7 @@ We can now plot a comparison of the MEEP simulation results and theory predictio
    ax.set_xlim([0, z[-1]])
    ax.set_ylim([0, power_ratio_theory[-1]])
    leg = ax.legend()
-   leg.set_title("MEEP resolution\n(pixels/µm)")
+   leg.set_title("Meep resolution\n(pixels/µm)")
 
 .. figure:: nonlinear_phenomena_figures/shg_no_dispersion.png
    :alt: test text
@@ -346,20 +346,20 @@ We can now plot a comparison of the MEEP simulation results and theory predictio
    :align: center
 
 
-We can see that at a resolution of 256, the MEEP simulation result has converged to a nice agreement between the theoretical curve. The SHG power is increasing quadratically as a function of propagation distance. Still, the agreement between MEEP and theory is not perfect, which could be caused by the fact we are assuming in the theory that the pump is not losing any energy to the SHG field. While this assumption quite accurate with our chosen parameters, as seen from figure of the spectral powers, the assumption is not completely accurate.
+We can see that at a resolution of 256, the Meep simulation result has converged to a nice agreement between the theoretical curve. The SHG power is increasing quadratically as a function of propagation distance. Still, the agreement between Meep and theory is not perfect, which could be caused by the fact we are assuming in the theory that the pump is not losing any energy to the SHG field. While this assumption quite accurate with our chosen parameters, as seen from figure of the spectral powers, the assumption is not completely accurate.
 
-Interestingly, when the resolution is too low, we get completely incorrect behaviour. The curve corresponding to a resolution of 32 looks like a there is a phase matching problem, even though there is actually perfect phase matching when dispersion is not used in the simulation. For reference, the official documentation recommends to use a resolution corresponding to at least 8 pixels per shortest wavelength, which for our parameters is equivalent to :math:`8/\lambda_\text{min}=8/(1/(2 n_0 f_\text{pump}))\approx 33.6`, where everything is in MEEP units and :math:`\lambda_\text{min}` is the wavelength of the SHG field inside the medium. We can see that we need a significantly higher resolution to get a good agreement with theory. It could be that nonlinear simulations require much higher resolutions than the recommended 8 pixels per shortest wavelength.
+Interestingly, when the resolution is too low, we get completely incorrect behaviour. The curve corresponding to a resolution of 32 looks like a there is a phase matching problem, even though there is actually perfect phase matching when dispersion is not used in the simulation. For reference, the official documentation recommends to use a resolution corresponding to at least 8 pixels per shortest wavelength, which for our parameters is equivalent to :math:`8/\lambda_\text{min}=8/(1/(2 n_0 f_\text{pump}))\approx 33.6`, where everything is in Meep units and :math:`\lambda_\text{min}` is the wavelength of the SHG field inside the medium. We can see that we need a significantly higher resolution to get a good agreement with theory. It could be that nonlinear simulations require much higher resolutions than the recommended 8 pixels per shortest wavelength.
 
 SHG with Dispersion: Phase Matching Problem
 -------------------------------------------
 
-Having successfully conquered SHG without the presence of dispersion, we will move on to simulate SHG in a dispersive material, giving rise to the phase matching problem. Dispersion can be easily included in MEEP by importing materials with predefined dispersion from the `meep.materials library <https://meep.readthedocs.io/en/latest/Materials/>`_. It is also possible to use `user defined dispersion <https://meep.readthedocs.io/en/master/Materials/#material-dispersion>`_, but we will restrain ourselves to using only predefined dispersion in this demo.
+Having successfully conquered SHG without the presence of dispersion, we will move on to simulate SHG in a dispersive material, giving rise to the phase matching problem. Dispersion can be easily included in Meep by importing materials with predefined dispersion from the `meep.materials library <https://meep.readthedocs.io/en/latest/Materials/>`_. It is also possible to use `user defined dispersion <https://meep.readthedocs.io/en/master/Materials/#material-dispersion>`_, but we will restrain ourselves to using only predefined dispersion in this demo.
 
 The predefined dispersion relation of LiNbO\ :sub:`3`\ can be plotted as follows:
 
 .. code-block:: python
 
-   freqs = np.linspace(0.2, 2.5, 100)  # in MEEP units
+   freqs = np.linspace(0.2, 2.5, 100)  # in Meep units
    freqs_SI = freqs * c/a  # convert to SI units
 
    # .epsilon() returns the permittivity tensor at given frequency,
@@ -428,21 +428,21 @@ We can now run the simulation with dispersion. We will again perform a resolutio
 
    shg_powers_disp = np.array(shg_powers_disp)
 
-We will again compare the simulation to the theoretical analytical expression. In the precence of dispersion, the power ratio between the SHG field and pump field is given by `[1, p. 73] <https://tuni-meep-doc.readthedocs.io/en/latest/nonlinear_phenomena.html#references>`_
+We will again compare the simulation to the theoretical analytical expression. In the presence of dispersion, the power ratio between the SHG field and pump field is given by `[1, p. 73] <https://tuni-meep-doc.readthedocs.io/en/latest/nonlinear_phenomena.html#references>`_
 
 .. math::
 
    \frac{P_2}{P_1} = \frac{\omega_1^2}{n_1 n_2 c^2 \Delta k^2} \left(\chi^{(2)}E_\text{pump}\right)^2 \sin ^2 \frac{z\Delta k}{2},
 
-where :math:`n_1` and :math:`n_2` are the refractive indices experienced by the pump field and SHG field, respectively, and :math:`\Delta k=2\frac{\omega_1}{c} \left(n_1 -n_2 \right)` is the wave vector miss match between between the pump and SHG waves. We have again written the equation in a form where unit conversion between MEEP units and SI units is almost automatically taken care of, as the left side is a dimensionless ratio and the right side contains the dimensionless product :math:`\chi^{(2)}E_\text{pump}`.
+where :math:`n_1` and :math:`n_2` are the refractive indices experienced by the pump field and SHG field, respectively, and :math:`\Delta k=2\frac{\omega_1}{c} \left(n_1 -n_2 \right)` is the wave vector miss match between the pump and SHG waves. We have again written the equation in a form where unit conversion between Meep units and SI units is almost automatically taken care of, as the left side is a dimensionless ratio and the right side contains the dimensionless product :math:`\chi^{(2)}E_\text{pump}`.
 
-Next, we plot a comparison of MEEP results and theory:
+Next, we plot a comparison of Meep results and theory:
 
 .. code-block:: python
 
    fig, ax = plt.subplots()
 
-   # plot the power ratio simulated in MEEP
+   # plot the power ratio simulated in Meep
    ax.plot(z, shg_powers_disp.T/pump_power_disp, label=resolutions_disp)
 
    n1 = n0
@@ -459,25 +459,25 @@ Next, we plot a comparison of MEEP results and theory:
    ax.set_xlim([0, z[-1]])
    ax.set_ylim([0, 1.05*power_ratio_theory_disp.max()])
    leg = ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
-   leg.set_title("MEEP resolution\n(pixels/µm)")
+   leg.set_title("Meep resolution\n(pixels/µm)")
 
 .. figure:: nonlinear_phenomena_figures/shg_with_dispersion.png
    :alt: test text
    :width: 90%
    :align: center
 
-The MEEP simulation has converged to a good agreement with the theory at a resolution of 512. The power of the SHG field is not increasing quadratically as with perfect phase matching, but insead oscillating as a weak sinusoidal, as predicted by the theory. The agreement with is not perfect as seen from the peaks, which could be caused by the inaccuracy of the undepleted pump assumption and the fact the refractive index varies slightly within the pulse bandwidths, which is not taken into account in the theory.
+The Meep simulation has converged to a good agreement with the theory at a resolution of 512. The power of the SHG field is not increasing quadratically as with perfect phase matching, but instead oscillating as a weak sinusoidal, as predicted by the theory. The agreement with is not perfect as seen from the peaks, which could be caused by the inaccuracy of the undepleted pump assumption and the fact the refractive index varies slightly within the pulse bandwidths, which is not taken into account in the theory.
 
-We can see that we perhaps need a higher resolution to reach convergence with dispersion than in the earlier figure without dispersion. This is reasonable, since the SHG field experiences a higher refractive index with dispersion, resulting in a smaller wavelength. Although it is not easy to make comparisons between the figures since the y-axes have differenct scales. 
+We can see that we perhaps need a higher resolution to reach convergence with dispersion than in the earlier figure without dispersion. This is reasonable, since the SHG field experiences a higher refractive index with dispersion, resulting in a smaller wavelength. Although it is not easy to make comparisons between the figures since the y-axes have different scales. 
 
 Quasi-Phase Matching
 --------------------
 
-We have now seen that without dispersion, the SHG power grows quadratically with propagation distance, and with dispersion, it ocillates weakly as a sinusoidal due to the phase matching problem. In experiments and applications, it usually desired to achieve the quadratic growth of the SHG power. Even though real materials are always dispersive, the quadratic growth can be achieved by utilizing special techniques.
+We have now seen that without dispersion, the SHG power grows quadratically with propagation distance, and with dispersion, it oscillates weakly as a sinusoidal due to the phase matching problem. In experiments and applications, it usually desired to achieve the quadratic growth of the SHG power. Even though real materials are always dispersive, the quadratic growth can be achieved by utilizing special techniques.
 
-The most common way to achieve phase matching in the presence of dispersion is birefringent phase matching. It relies on birefrince (polarization dependence of the refractive index) and the fact that some SHG light is generated with orthogonal polarization with respect to the pump field, resulting from the off-diagonal elements of the :math:`\chi^{(2)}` susceptibility tensor. However, MEEP doesn't support off-diagonal elements of nonlinear susceptibility tensors, and hence it is not possible to simulate birefringent phase matching directly in MEEP.
+The most common way to achieve phase matching in the presence of dispersion is birefringent phase matching. It relies on birefrince (polarization dependence of the refractive index) and the fact that some SHG light is generated with orthogonal polarization with respect to the pump field, resulting from the off-diagonal elements of the :math:`\chi^{(2)}` susceptibility tensor. However, Meep doesn't support off-diagonal elements of nonlinear susceptibility tensors, and hence it is not possible to simulate birefringent phase matching directly in Meep.
 
-The second most common phase matching method, quasi-phase matching, can be simulated in MEEP. The idea of quasi-phase matching is to switch the sign of :math:`\chi^{(2)}` after the SHG power has reached the first local maximum of the sinusoidal, leading to continued growth of the SHG power. After that, the sign of :math:`\chi^{(2)}` is switched repeatedly with the same period. The distance from :math:`z=0` to the first local maximum of the sinusoidal is known as the coherence length, and it is given by :math:`L_c=\frac{\pi}{\Delta k}`.
+The second most common phase matching method, quasi-phase matching, can be simulated in Meep. The idea of quasi-phase matching is to switch the sign of :math:`\chi^{(2)}` after the SHG power has reached the first local maximum of the sinusoidal, leading to continued growth of the SHG power. After that, the sign of :math:`\chi^{(2)}` is switched repeatedly with the same period. The distance from :math:`z=0` to the first local maximum of the sinusoidal is known as the coherence length, and it is given by :math:`L_c=\frac{\pi}{\Delta k}`.
 
 Next, we modify our simulation function to implement quasi-phase matching. We have made quite a few updates to the function since we first introduced it, so we will show the whole function explicitly this time.
 
@@ -652,19 +652,19 @@ where :math:`s(z)` is a "staircase function", given by
 
 .. math::
 
-   s(z) = \begin{cases} 2 \sin ^2 \frac{\Delta k z}{2}, & \text{if } z \leq L_c, \\ 2n^2+2n+1-(1+2n)\cos(\Delta k z'), & \text{if } z > L_c \end{cases}
+   s(z) = \begin{cases} 2 \sin ^2 \frac{\Delta k z}{2}, & \text{if } z \leq L_c, \\ 2l^2+2l+1-(1+2l)\cos(\Delta k z'), & \text{if } z > L_c \end{cases}
 
-where :math:`n= \lfloor \frac{z}{L_c} \rfloor` is the number of propagated coherence lengths at :math:`z` and :math:`z' = z-L_c` is the distance from the last location where the sign of :math:`\chi^{(2)}` was switched. We have derived the above equations ourselves starting from equation (2.2.10) of the Boyd book `[1, p. 71] <https://tuni-meep-doc.readthedocs.io/en/latest/nonlinear_phenomena.html#references>`_, since was found when making this demo that the description of quasi-phase matching given in the book `[1, p. 81] <https://tuni-meep-doc.readthedocs.io/en/latest/nonlinear_phenomena.html#references>`_ is slightly inaccurate, as every other "step" of the "staircase" is missing (see figure below).
+where :math:`l= \lfloor \frac{z}{L_c} \rfloor` is the number of propagated coherence lengths at :math:`z` and :math:`z' = z-l L_c` is the distance from the last position where the sign of :math:`\chi^{(2)}` was switched. We have derived the above equations ourselves starting from equation (2.2.10) of the Boyd book `[1, p. 71] <https://tuni-meep-doc.readthedocs.io/en/latest/nonlinear_phenomena.html#references>`_, since was found when making this demo that the description of quasi-phase matching given in the book `[1, p. 81] <https://tuni-meep-doc.readthedocs.io/en/latest/nonlinear_phenomena.html#references>`_ is slightly inaccurate, as every other "step" of the "staircase" is missing (see figure below).
 
-We can now calculate the theoretical curve and plot it with the MEEP simulation result. We will also plot the earlier curves with perfect phase matching (no dispersion) and with phase miss match (with dispersion) for reference.
+We can now calculate the theoretical curve and plot it with the Meep simulation result. We will also plot the earlier curves with perfect phase matching (no dispersion) and with phase miss match (with dispersion) for reference.
 
 .. code-block:: python
 
    fig, ax = plt.subplots()
 
-   ax.plot(z, shg_powers[-1,:]/pump_power, label="MEEP phase matched")
-   ax.plot(z, shg_power_quasi/pump_power_quasi, label="MEEP quasi-phase matched")
-   ax.plot(z, shg_powers_disp[-1,:]/pump_power_disp, label="MEEP not phase matched")
+   ax.plot(z, shg_powers[-1,:]/pump_power, label="Meep phase matched")
+   ax.plot(z, shg_power_quasi/pump_power_quasi, label="Meep quasi-phase matched")
+   ax.plot(z, shg_powers_disp[-1,:]/pump_power_disp, label="Meep not phase matched")
 
    def quasi_staircase(z, delta_k):
       coherence_length = np.pi/delta_k
@@ -743,14 +743,14 @@ The above formula is :math:`I_\text{inp}` as a function of :math:`I_\text{out}`,
    L_SI = 15e-6  # length of chi3 cavity (m)
    lambda_SI = 1550e-9  # laser wavelength (m)
    omega_SI = 2*np.pi*c/lambda_SI
-   lambda_ = lambda_SI/a  # wavelength in MEEP units
+   lambda_ = lambda_SI/a  # wavelength in Meep units
 
    # linear refractive index at laser frequency, n0 = 3.37
    n0 = np.sqrt(GaAs.epsilon(1/lambda_)[0,0])
    # nonlinear refractive index of GaAs in m^2/W. Hales et.al [2]
    n2_SI = 2e-17
 
-   # reflectivity and transimittivity of GaAs-air interface from Fresnel equation
+   # reflectivity and transmittivity of GaAs-air interface from Fresnel equation
    R = ((1-n0)/(1+n0))**2
    T = 1-R
 
@@ -805,28 +805,28 @@ We can observe that for a certain range of input intensities, the output intensi
 Setting Up Simulation
 ---------------------
 
-Next, we will simulate the system described by the first figure in order to achieve optical bistability in MEEP. We use GaAs with predefined dispersion as the nonlinear cavity to ensure that there are no phase-matched frequency conversion processes causing unwanted side-effects. The simulation cell and cavity are constructed as follows:
+Next, we will simulate the system described by the first figure in order to achieve optical bistability in Meep. We use GaAs with predefined dispersion as the nonlinear cavity to ensure that there are no phase-matched frequency conversion processes causing unwanted side-effects. The simulation cell and cavity are constructed as follows:
 
 .. code-block:: python
 
    # define cell
    pml_size = 1
    pml_layers = [mp.PML(pml_size)]
-   L = L_SI/a  # length of chi3 cavity in MEEP units
+   L = L_SI/a  # length of chi3 cavity in Meep units
    cavity_gap = 2  # source-cavity and cavity-ouput monitor gap
    cell_len = L + 2*pml_size + 2*cavity_gap
    cell = mp.Vector3(0, 0, cell_len)
 
    # define cavity with third order nonlinearity
    cavity_material = GaAs
-   n2 = 0.01  # nonlinear refractive index in MEEP units
-   chi3 = 4/3 * n2*n0**2  # notice lack of epsilon_0 and c due to MEEP units
+   n2 = 0.01  # nonlinear refractive index in Meep units
+   chi3 = 4/3 * n2*n0**2  # notice lack of epsilon_0 and c due to Meep units
    cavity_material.E_chi3_diag = mp.Vector3(chi3, chi3, chi3)  # add third order nonlinearity
    geometry = [mp.Block(size=mp.Vector3(0,0,L),
                         center=mp.Vector3(0,0,0),
                         material=cavity_material)]
 
-Next, we determine the set of input intensities we will use for our source. In order to reconstruct the theoretical hysteresis loop of the above figure, we will first increase the input intensity monotonically in discrete steps, and then lower it back to zero after reaching the maximum. We will also place points just before and after the discontinuous jumps predicted by the theory, in order to localize the discontiniuties as accurately as possible.
+Next, we determine the set of input intensities we will use for our source. In order to reconstruct the theoretical hysteresis loop of the above figure, we will first increase the input intensity monotonically in discrete steps, and then lower it back to zero after reaching the maximum. We will also place points just before and after the discontinuous jumps predicted by the theory, in order to localize the discontinuities as accurately as possible.
 
 .. code-block:: python
 
@@ -839,8 +839,8 @@ Next, we determine the set of input intensities we will use for our source. In o
    discon_idx_decr = argrelextrema(I_inp_SI, np.less)[0][0]
 
    # convert input intensities at discontinuities from SI units
-   # to MEEP units. The conversion is based onthe fact that n_2*I
-   # is dimensionless, so it's value is same in MEEP and SI units.
+   # to Meep units. The conversion is based onthe fact that n_2*I
+   # is dimensionless, so it's value is same in Meep and SI units.
    I_inp_discon_incr = I_inp_SI[discon_idx_incr]*n2_SI/n2
    I_inp_discon_decr = I_inp_SI[discon_idx_decr]*n2_SI/n2
 
@@ -871,7 +871,7 @@ The set of input intensities are plotted above. Based on the theory, we expect t
 Adaptive Simulation
 -------------------
 
-We have to measure the output intensity corresponding to each input intensity defined above. Perhaps the main challenge of this demo is to set up a simulation where we set the input intensity to the desired value, and then wait for the output intensity to stabilize before measuring it, for each input intensity. It can take some time for the output intensity to stabilize, as we have to wait for the light to bounce around in the cavity many times before stability is reached. The desired simulation behaviour is desrcibed schematically below.
+We have to measure the output intensity corresponding to each input intensity defined above. Perhaps the main challenge of this demo is to set up a simulation where we set the input intensity to the desired value, and then wait for the output intensity to stabilize before measuring it, for each input intensity. It can take some time for the output intensity to stabilize, as we have to wait for the light to bounce around in the cavity many times before stability is reached. The desired simulation behaviour is described schematically below.
 
 .. figure:: nonlinear_phenomena_figures/optical_bistability_schematic.png
    :alt: test text
@@ -884,7 +884,7 @@ We have to measure the output intensity corresponding to each input intensity de
 
 The easiest solution would be to wait for a fixed time duration after setting the input intensity. However, we have found that it takes significantly longer for the output intensity to stabilize after the two discontinuous jumps than for the rest of the transitions. If we used a fixed duration, we would have to use the duration required for the discontinuous jumps every time, which would be excessively long for most transitions. Hence the best solution is to make an adaptive simulation that automatically detects when the output intensity has stabilized, after which the output intensity is measured and next input intensity transition is started.
 
-We can make an adaptive simulation by making a custom class whose functions we pass to MEEP. The class is initialized as:
+We can make an adaptive simulation by making a custom class whose functions we pass to Meep. The class is initialized as:
 
 .. code-block:: python
 
@@ -897,12 +897,12 @@ We can make an adaptive simulation by making a custom class whose functions we p
       def __init__(self, I_inp, source_freq):
          """Initialize object.
          
-         :param I_inp: np.ndarray, vector of input intensities in MEEP units
-         :param source_freq: float, source frequency in MEEP units
+         :param I_inp: np.ndarray, vector of input intensities in Meep units
+         :param source_freq: float, source frequency in Meep units
          """
          
          # convert intensity to electric field (note lack of c and epsilon_0
-         # due to MEEP units)
+         # due to Meep units)
          E_inp = np.sqrt(2*I_inp)
          # convert electric field to source current amplitude
          # E = Z*current_amplitude/2, where Z = np.sqrt(1/eps) = 1
@@ -957,7 +957,7 @@ The input source of the simulation is controlled by the class. We define the sou
          """Envelope function of current source. Uses hyperbolic tangent function
          for creating a smooth transition between two input intensities.
          
-         :param t: float, time in MEEP units
+         :param t: float, time in Meep units
          :return: float, envelope value"""
 
          if self.amp_idx >= self.input_amps.size-1:
@@ -987,7 +987,7 @@ The input source of the simulation is controlled by the class. We define the sou
       def source_func(self, t):
          """Current source function.
          
-         :param t: float, time in MEEP units
+         :param t: float, time in Meep units
          :return: complex, source value
          """
          
@@ -1003,7 +1003,7 @@ The input source of the simulation is controlled by the class. We define the sou
          # add phase
          return y*np.exp(1j*2*np.pi*self.freq*t)
 
-Next, we define a function that measures and stores the output Poyting vector's z-component. The Poynting vector is given by 
+Next, we define a function that measures and stores the output Poynting vector's z-component. The Poynting vector is given by 
 
 .. math::
 
@@ -1031,7 +1031,7 @@ where :math:`\mathbf{E}` is the electric field vector and :math:`\mathbf{H}` is 
          # c=mp.Sz (derived component) isn't supported for get_field_point. We had to
          # calculate S manually.
 
-Next, we define a function a function that tests if the output intensity has stabilized. The latest output intensities are obtained by time averaging Poyting vector values, since :math:`I = \left< S \right>_t`. Output intensity stability is checked by testing if the maximum variation in the latest output intensities is smaller than the tolerance.
+Next, we define a function a function that tests if the output intensity has stabilized. The latest output intensities are obtained by time averaging Poynting vector values, since :math:`I = \left< S \right>_t`. Output intensity stability is checked by testing if the maximum variation in the latest output intensities is smaller than the tolerance.
 
 .. code-block:: python
 
@@ -1092,7 +1092,7 @@ Finally, we define a function that tests if all the input intensities have been 
 
          return self.amp_idx >= self.input_amps.size-1
 
-Now we are ready to use our shiny new class to make a simulation with the desired dynamics. We define the source controlled by the class and the simulation object in the code below. We cannot pass functions of the class directly to MEEP, but an easy workaround to use a lambda function that executes the class function.
+Now we are ready to use our shiny new class to make a simulation with the desired dynamics. We define the source controlled by the class and the simulation object in the code below. We cannot pass functions of the class directly to Meep, but an easy workaround to use a lambda function that executes the class function.
 
 .. code-block:: python
 
@@ -1142,18 +1142,18 @@ We will first plot the input and output intensities as a function of time. This 
    t_S = np.linspace(0,sim_control.t, len(sim_control.S_all))
    t_source = np.linspace(0,sim_control.t, len(sim_control.source_envelope_all))
 
-   # obtain output intensities by time averaging Poyting vector values
+   # obtain output intensities by time averaging Poynting vector values
    dt = sim_control.t / len(sim_control.S_all)
    N_window = int(sim_control.S_averaging_window_len/dt)
    averaging_window = np.ones(N_window)/N_window
    I_out_envelope = np.convolve(sim_control.S_all, averaging_window, mode='same')
 
    # convert source current amplitudes to input intensities. Uses equations
-   # I=1/2*E^2 (note lack of c and epsilon_0 due to MEEP units and n=1) and
+   # I=1/2*E^2 (note lack of c and epsilon_0 due to Meep units and n=1) and
    # E = Z*current_amplitude/2, where Z = np.sqrt(1/eps) = 1
    I_inp_envelope = 1/8 * np.array(sim_control.source_envelope_all)**2
 
-   # time conversion factor from MEEP units to seconds
+   # time conversion factor from Meep units to seconds
    time_conversion = a/c*1e12
 
    # plot input and output intensities as a function of time
@@ -1174,13 +1174,13 @@ We will first plot the input and output intensities as a function of time. This 
 
 We can see that the simulation is behaving exactly as desired! We are increasing and decreasing the input intensity in small smooth steps, and waiting for the output intensity to stabilize before starting the next step. Also, the large jumps in output intensity occurs during the tiny steps in input intensity, which is the result we expected.
 
-We can already see that for some input intensities the output intensity can have two different values depending on if the input intensity is being increased or decreased. However, this can be visualized more clearly by plotting the output intensity as a function of input intensity. We will do this and compare the simulation result to the theory in the code below. We can conveniently sidestep the unit conversion of intensities by expressing the intensities in terms of the dimensionless product :math:`n_2 I`, since it's value is the same in MEEP and SI units.
+We can already see that for some input intensities the output intensity can have two different values depending on if the input intensity is being increased or decreased. However, this can be visualized more clearly by plotting the output intensity as a function of input intensity. We will do this and compare the simulation result to the theory in the code below. We can conveniently sidestep the unit conversion of intensities by expressing the intensities in terms of the dimensionless product :math:`n_2 I`, since it's value is the same in Meep and SI units.
 
 .. code-block:: python
 
-   # plot MEEP result and theory
+   # plot Meep result and theory
    fig, ax = plt.subplots()
-   ax.plot(n2*I_inp, n2*sim_control.I_out, 'o-', label="MEEP", linewidth=2,
+   ax.plot(n2*I_inp, n2*sim_control.I_out, 'o-', label="Meep", linewidth=2,
          markersize=4, color='tab:green')
    ax.plot(n2_SI*I_inp_SI, n2_SI*I_out_SI, 'k:', label="theory", linewidth=2)
    ax.set_xlim([0, np.max(n2*I_inp)])
@@ -1192,14 +1192,12 @@ We can already see that for some input intensities the output intensity can have
    # add arrows to help visualize intensity path
    arrow_coords = [[0.005, 0.0007], [0.0165, 0.0035], [0.0243, 0.0095], [0.027, 0.0167],
                    [0.032, 0.0193], [0.02, 0.0176], [0.0128, 0.012], [0.009, 0.00395]]
-   arrow_dirs = [[0.01, 0.0029], [0.01, 0.0038], [0, 1], [0.01, 0.0014],
-                 [-0.01, -0.0014], [-0.01, -0.0029], [0, -1], [-0.01, -0.0029]]
+   thetas = [0.28, 0.36, np.pi/2, 0.14, -3.00, -2.86, -np.pi/2, -2.86]
    arrow_len = 0.005
-   for coord, dir in zip(arrow_coords, arrow_dirs):
+   for coord, theta in zip(arrow_coords, thetas):
       x, y = coord
-      dir = np.array(dir)
-      dir = arrow_len*dir/np.linalg.norm(dir)
-      delta_x, delta_y = dir
+      delta_x = arrow_len*np.cos(theta)
+      delta_y = arrow_len*np.sin(theta)
       ax.arrow(x, y, delta_x, delta_y, width=0.00005,
                head_width=0.0004, color='tab:gray')
 
@@ -1208,16 +1206,16 @@ We can already see that for some input intensities the output intensity can have
    :width: 90%
    :align: center
 
-We have achieved optical bistability in MEEP! We have successfully reconstructed the hysteresis loop predicted by the theory. The agreement between MEEP and theory is seemingly good, however, it is important to keep in mind that we have fitted the :math:`\alpha` parameter of the theory to the simulation result, as finding the value of the parameter analytically is beyond the scope of our documentation. Hence we cannot conclude that the values given by the simulation are matching the theory, but we can conclude that the functional form of the simulated curve is matching the form of the theoretical curve quite well.
+We have achieved optical bistability in Meep! We have successfully reconstructed the hysteresis loop predicted by the theory. The agreement between Meep and theory is seemingly good, however, it is important to keep in mind that we have fitted the :math:`\alpha` parameter of the theory to the simulation result, as finding the value of the parameter analytically is beyond the scope of our documentation. Hence we cannot conclude that the values given by the simulation are matching the theory, but we can conclude that the functional form of the simulated curve is matching the form of the theoretical curve quite well.
 
 Conclusions
 ===========
 
-In this section, we have demonstrated second harmonic generation and optical bistability in MEEP, providing examples on both second and third order nonlinear effects. Nonlinear optical effects are relatively straight forward to simulate in MEEP, since all that has to be done on the user side is to define a material with a nonzero :math:`\chi^{(2)}` or :math:`\chi^{(3)}` nonlinear susceptibility and MEEP will take care of the rest. In our demos, the simulation results agree well with theoretical predictions, which would give us a high confidence when simulating more complex nonlinear effects where analytical solutions are not available.
+In this section, we have demonstrated second harmonic generation and optical bistability in Meep, providing examples on both second and third order nonlinear effects. Nonlinear optical effects are relatively straight forward to simulate in Meep, since all that has to be done on the user side is to define a material with a nonzero :math:`\chi^{(2)}` or :math:`\chi^{(3)}` nonlinear susceptibility and Meep will take care of the rest. In our demos, the simulation results agree well with theoretical predictions, which would give us a high confidence when simulating more complex nonlinear effects where analytical solutions are not available.
 
-However, some limitations of MEEP related to nonlinearities were discovered through the demos. First, MEEP doesn't support off-diagonal elements of nonlinear susceptibility tensors, which means that some nonlinear effects, such as SHG with birefringent phase matching, cannot be simulated directly in in MEEP. The second and perhaps a more serious limitation is that very high resolutions are required to reach convergence. In the SHG demo, we needed an order of magnitude higher resolution than the recommendation for linear systems of at least 8 pixels per shortest wavelength. If the resolution is too low, it is possible that the result is not just off by a little, but instead completely incorrect behaviour is predicted, which was observed in the SHG demo with perfect phase matching. High resolutions cause long simulation times and large memory requirements, and even though we did only 1 dimensional simulations, the SHG demo with quasi-phase matching took already 20 seconds to run and the optical bistability demo took half an our with our computer. The computational requirements might become a serious bottleneck if MEEP is used for nonlinear simulations in higher dimensions. Although parallel computing with `Parallel Meep <https://meep.readthedocs.io/en/latest/Parallel_Meep/>`_ could help with the simulation time issue.
+However, some limitations of Meep related to nonlinearities were discovered through the demos. First, Meep doesn't support off-diagonal elements of nonlinear susceptibility tensors, which means that some nonlinear effects, such as SHG with birefringent phase matching, cannot be simulated directly in in Meep. The second and perhaps a more serious limitation is that very high resolutions are required to reach convergence. In the SHG demo, we needed an order of magnitude higher resolution than the recommendation for linear systems of at least 8 pixels per shortest wavelength. If the resolution is too low, it is possible that the result is not just off by a little, but instead completely incorrect behaviour is predicted, which was observed in the SHG demo with perfect phase matching. High resolutions cause long simulation times and large memory requirements, and even though we did only 1 dimensional simulations, the SHG demo with quasi-phase matching took already 20 seconds to run and the optical bistability demo took half an our with our computer. The computational requirements might become a serious bottleneck if Meep is used for nonlinear simulations in higher dimensions. Although parallel computing with `Parallel Meep <https://meep.readthedocs.io/en/latest/Parallel_Meep/>`_ could help with the simulation time issue.
 
-In conclusion, we have shown that MEEP can be used to simulate nonlinear optical effects with a high accuracy. However, the requirement of very high resolutions might limit the practicality of simulating more complex nonlinear systems.
+In conclusion, we have shown that Meep can be used to simulate nonlinear optical effects with a high accuracy. However, the requirement of very high resolutions might limit the practicality of simulating more complex nonlinear systems.
 
 References
 ==========
