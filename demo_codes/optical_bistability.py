@@ -345,10 +345,10 @@ time_conversion = a/c*1e12
 
 # plot input and output intensities as a function of time
 fig, ax = plt.subplots()
-ax.plot(t_source*time_conversion, I_inp_envelope*n2, label='input')
-ax.plot(t_S*time_conversion, I_out_envelope*n2, label='output')
+ax.plot(t_source*time_conversion, I_inp_envelope, label='input')
+ax.plot(t_S*time_conversion, I_out_envelope, label='output')
 ax.set_xlim([0, t_S[-1]*time_conversion])
-ax.set_ylim([0, 1.05*n2*I_inp.max()])
+ax.set_ylim([0, 1.05*I_inp.max()])
 ax.set_xlabel('time (ps)')
 ax.set_ylabel('intensity (a.u.)')
 ax.grid()
