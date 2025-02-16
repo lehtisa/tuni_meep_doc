@@ -301,7 +301,7 @@ Next, we will run the new simulation function and obtain the SHG power at multip
 
    shg_powers = np.array(shg_powers)
 
-We will compare the MEEP simulation to the analytical expression predicted by the theory. Starting from Maxwell's equations, it can be shown that the propagation evolution of the SHG intensity :math:`I_2` is given by
+We will compare the MEEP simulation to the analytical expression predicted by the theory. Starting from Maxwell's equations, it can be shown that the propagation evolution of the SHG intensity :math:`I_2` is given by `[1, p. 73] <https://tuni-meep-doc.readthedocs.io/en/latest/nonlinear_phenomena.html#references>`_
 
 .. math::
 
@@ -428,7 +428,7 @@ We can now run the simulation with dispersion. We will again perform a resolutio
 
    shg_powers_disp = np.array(shg_powers_disp)
 
-We will again compare the simulation to the theoretical analytical expression. In the precence of dispersion, the power ratio between the SHG field and pump field is given by
+We will again compare the simulation to the theoretical analytical expression. In the precence of dispersion, the power ratio between the SHG field and pump field is given by `[1, p. 73] <https://tuni-meep-doc.readthedocs.io/en/latest/nonlinear_phenomena.html#references>`_
 
 .. math::
 
@@ -642,7 +642,19 @@ We can now calculate the coherence length and simulate the evolution of the SHG 
                                              quasi_phase_matching=True,
                                              coherence_length=coherence_length)
 
-Again, we compare the simulation result to the analytical expression predicted by the theory. Under quasi-phase matching, the SHG power is expected to grow as TODO. It was found when making this demo that the description of quasi-phase matching given in the Boyd book is slightly inaccurate, as every other "step" of the "staircase" is missing.
+Again, we compare the simulation result to the analytical expression predicted by the theory. Under quasi-phase matching, the SHG power is expected to grow as
+
+.. math::
+
+   \frac{P_2}{P_1} = \frac{\omega_1^2}{2n_1 n_2 c^2 \Delta k^2} \left(\chi^{(2)}E_\text{pump}\right)^2 s(z),
+
+where :math:`s(z)` is a "staircase function", given by
+
+.. math::
+
+   s(z) = \begin{cases} 2 \sin ^2 \frac{\Delta k z}{2}, & \text{if } z \leq L_c, \\ 2n^2+2n+1-(1+2n)\cos(\Delta k z'), & \text{if } z > L_c \end{cases}
+
+where :math:`n= \lfloor \frac{z}{L_c} \rfloor` is the number of propagated coherence lengths at :math:`z` and :math:`z' = z-L_c` is the distance from the last location where the sign of :math:`\chi^{(2)}` was switched. We have derived the above equations ourselves starting from equation (2.2.10) of the Boyd book `[1, p. 71] <https://tuni-meep-doc.readthedocs.io/en/latest/nonlinear_phenomena.html#references>`_, since was found when making this demo that the description of quasi-phase matching given in the book `[1, p. 81] <https://tuni-meep-doc.readthedocs.io/en/latest/nonlinear_phenomena.html#references>`_ is slightly inaccurate, as every other "step" of the "staircase" is missing (see figure below).
 
 We can now calculate the theoretical curve and plot it with the MEEP simulation result. We will also plot the earlier curves with perfect phase matching (no dispersion) and with phase miss match (with dispersion) for reference.
 
@@ -702,13 +714,13 @@ The code used to produce this demo is available at TODO.
 Theory of Optical Bistability
 -----------------------------
 
-We begin by introducing the theory of optical bistability. An optically bistable system can be realized with a setup described by the figure below. An input beam with intensity :math:`I_\text{inp}` is injected to a cavity consisting of a :math:`\chi^{(3)}` material, and an output beam with intensity :math:`I_\text{out}` comes out. It is possible to write :math:`I_\text{inp}` as a function of :math:`I_\text{out}` as TODO cite
+We begin by introducing the theory of optical bistability. An optically bistable system can be realized with a setup described by the figure below. An input beam with intensity :math:`I_\text{inp}` is injected to a Fabry–Pérot cavity consisting of a :math:`\chi^{(3)}` material, and an output beam with intensity :math:`I_\text{out}` comes out. It is possible to write :math:`I_\text{inp}` as a function of :math:`I_\text{out}` as `[1, p. 355] <https://tuni-meep-doc.readthedocs.io/en/latest/nonlinear_phenomena.html#references>`_
 
 .. math::
 
    I_\text{inp}=\left( 1+4 \frac{R}{T^2} \sin^2 \left[ \frac{\omega L}{c} \left( n_0 + n_2 \frac{\alpha I_\text{out}}{T} \right) \right] \right) I_\text{out},
 
-where :math:`R` and :math:`T` are the reflectance and transmittance of the mirrors, respectively, :math:`L` is the cavity length, and :math:`n_0` and :math:`n_2` are the linear and nonlinear refractive indices of the cavity, respectively. The parameter :math:`\alpha` reflects the fact that the total intensity inside the cavity consists of intensities of right and left propagating waves, and an approximation :math:`\alpha \approx 2` can be made TODO cite. For more accurate results, one would have to take standing wave effects into account TODO cite. However, this beyond the scope of our documentation, and we will instead take the practical and slightly unrigorous approach of finding the value of :math:`\alpha` by fitting it to our simulation data.
+where :math:`R` and :math:`T` are the reflectance and transmittance of the mirrors, respectively, :math:`L` is the cavity length, and :math:`n_0` and :math:`n_2` are the linear and nonlinear refractive indices of the cavity, respectively. The parameter :math:`\alpha` reflects the fact that the total intensity inside the cavity consists of intensities of right and left propagating waves, and an approximation :math:`\alpha \approx 2` can be made `[1, p. 354] <https://tuni-meep-doc.readthedocs.io/en/latest/nonlinear_phenomena.html#references>`_. For more accurate results, one would have to take standing wave effects into account `[1, p. 351] <https://tuni-meep-doc.readthedocs.io/en/latest/nonlinear_phenomena.html#references>`_. However, this beyond the scope of our documentation, and we will instead take the practical and slightly unrigorous approach of finding the value of :math:`\alpha` by fitting it to our simulation data.
 
 .. figure:: nonlinear_phenomena_figures/optical_bistability_setup.png
    :alt: test text
@@ -1160,7 +1172,7 @@ We will first plot the input and output intensities as a function of time. This 
    :width: 90%
    :align: center
 
-We can see that the simulation is behaving exactly as desired! We are increasing and decreasing the input intensity in small smooth steps, and waiting for the output intensity to stabilize before starting the next step. Also, the sudden jumps in output intensity occurs during the tiny steps in input intensity, which is the result we expected.
+We can see that the simulation is behaving exactly as desired! We are increasing and decreasing the input intensity in small smooth steps, and waiting for the output intensity to stabilize before starting the next step. Also, the large jumps in output intensity occurs during the tiny steps in input intensity, which is the result we expected.
 
 We can already see that for some input intensities the output intensity can have two different values depending on if the input intensity is being increased or decreased. However, this can be visualized more clearly by plotting the output intensity as a function of input intensity. We will do this and compare the simulation result to the theory in the code below. We can conveniently sidestep the unit conversion of intensities by expressing the intensities in terms of the dimensionless product :math:`n_2 I`, since it's value is the same in MEEP and SI units.
 
@@ -1206,3 +1218,9 @@ In this section, we have demonstrated second harmonic generation and optical bis
 However, some limitations of MEEP related to nonlinearities were discovered through the demos. First, MEEP doesn't support off-diagonal elements of nonlinear susceptibility tensors, which means that some nonlinear effects, such as SHG with birefringent phase matching, cannot be simulated directly in in MEEP. The second and perhaps a more serious limitation is that very high resolutions are required to reach convergence. In the SHG demo, we needed an order of magnitude higher resolution than the recommendation for linear systems of at least 8 pixels per shortest wavelength. If the resolution is too low, it is possible that the result is not just off by a little, but instead completely incorrect behaviour is predicted, which was observed in the SHG demo with perfect phase matching. High resolutions cause long simulation times and large memory requirements, and even though we did only 1 dimensional simulations, the SHG demo with quasi-phase matching took already 20 seconds to run and the optical bistability demo took half an our with our computer. The computational requirements might become a serious bottleneck if MEEP is used for nonlinear simulations in higher dimensions. Although parallel computing with `Parallel Meep <https://meep.readthedocs.io/en/latest/Parallel_Meep/>`_ could help with the simulation time issue.
 
 In conclusion, we have shown that MEEP can be used to simulate nonlinear optical effects with a high accuracy. However, the requirement of very high resolutions might limit the practicality of simulating more complex nonlinear systems.
+
+References
+==========
+
+.. [1] R. W. Boyd, Nonlinear Optics, 4th ed., Academic Press, 2020.
+.. [2] J. M. Hales et al., Third-Order Nonlinear Optical Coefficients of Si and GaAs in the Near-Infrared Spectral Region, Conference on Lasers and Electro-Optics, 2018
