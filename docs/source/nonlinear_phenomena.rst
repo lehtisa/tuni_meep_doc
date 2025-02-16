@@ -67,7 +67,12 @@ The code used to produce this demo is available at TODO.
 SHG without Dispersion: Perfect Phase Matching
 ----------------------------------------------
 
-First, we will simulate SHG without the presence of dispersion (same refractive index for all frequencies). The desired simulation behaviour is presented schematically below TODO. We want to place a pump source with wavelength 1064 nm in a :math:`\chi^{(2)}` material, and then measure the output spectrum after propagtion in a 1D simulation. We will use lithium niobate (LiNbO\ :sub:`3`\ ) as the nonlinear material, which is a common material in second order nonlinear optics applications.
+First, we will simulate SHG without the presence of dispersion (same refractive index for all frequencies). The desired simulation behaviour is presented schematically below. We want to place a pump source with wavelength 1064 nm in a :math:`\chi^{(2)}` material, and then measure the output spectrum after propagation in a 1D simulation. After measuring the output spectrum, we will update the simulation to measure the evolution of the SHG power during propagation. We will use lithium niobate (LiNbO\ :sub:`3`\ ) as the nonlinear material, which is a common material in second order nonlinear optics applications.
+
+.. figure:: nonlinear_phenomena_figures/shg_setup.png
+   :alt: test text
+   :width: 90%
+   :align: center
 
 First, we import the required libraries and define parameters:
 
@@ -705,7 +710,10 @@ We begin by introducing the theory of optical bistability. An optically bistable
 
 where :math:`R` and :math:`T` are the reflectance and transmittance of the mirrors, respectively, :math:`L` is the cavity length, and :math:`n_0` and :math:`n_2` are the linear and nonlinear refractive indices of the cavity, respectively. The parameter :math:`\alpha` reflects the fact that the total intensity inside the cavity consists of intensities of right and left propagating waves, and an approximation :math:`\alpha \approx 2` can be made TODO cite. For more accurate results, one would have to take standing wave effects into account TODO cite. However, this beyond the scope of our documentation, and we will instead take the practical and slightly unrigorous approach of finding the value of :math:`\alpha` by fitting it to our simulation data.
 
-TODO figure
+.. figure:: nonlinear_phenomena_figures/optical_bistability_setup.png
+   :alt: test text
+   :width: 90%
+   :align: center
 
 The above formula is :math:`I_\text{inp}` as a function of :math:`I_\text{out}`, but we are actually interested in finding :math:`I_\text{out}` as a function of :math:`I_\text{inp}`. This is not possible to do analytically, but we can plot :math:`I_\text{inp}` as a function of :math:`I_\text{out}` and then swap the x and y axes to visualize :math:`I_\text{out}` as a function of :math:`I_\text{inp}`. We make this plot after defining our simulation parameters in the code below. We are using a 15 µm block of gallium arsenide (GaAS) as the nonlinear cavity and a laser wavelength of 1550 nm. We don't need to use external mirrors, as the refractive index contrast of GaAs and air provides sufficient reflectance.
 
@@ -1072,7 +1080,7 @@ Finally, we define a function that tests if all the input intensities have been 
 
          return self.amp_idx >= self.input_amps.size-1
 
-Now we are ready to use our shiny new class to make a simulation with the desired dynamics. We define the source, controlled by the class, and the simulation object in the code below. We cannot pass functions of the class directly to MEEP, but an easy workaround to use a lambda function that executes the class function.
+Now we are ready to use our shiny new class to make a simulation with the desired dynamics. We define the source controlled by the class and the simulation object in the code below. We cannot pass functions of the class directly to MEEP, but an easy workaround to use a lambda function that executes the class function.
 
 .. code-block:: python
 
@@ -1134,7 +1142,7 @@ We will first plot the input and output intensities as a function of time. This 
    I_inp_envelope = 1/8 * np.array(sim_control.source_envelope_all)**2
 
    # time conversion factor from MEEP units to seconds
-   time_conversion = a/c
+   time_conversion = a/c*1e12
 
    # plot input and output intensities as a function of time
    fig, ax = plt.subplots()
@@ -1142,7 +1150,7 @@ We will first plot the input and output intensities as a function of time. This 
    ax.plot(t_S*time_conversion, I_out_envelope*n2, label='output')
    ax.set_xlim([0, t_S[-1]*time_conversion])
    ax.set_ylim([0, 1.05*n2*I_inp.max()])
-   ax.set_xlabel('time (s)')
+   ax.set_xlabel('time (ps)')
    ax.set_ylabel('intensity (a.u.)')
    ax.grid()
    ax.legend()
@@ -1152,9 +1160,9 @@ We will first plot the input and output intensities as a function of time. This 
    :width: 90%
    :align: center
 
-We can see that the simulation is behaving exactly as desired! We are increasing and decreasing the input intensity in small smooth steps, and waiting for the output intensity to stabilize before starting the next step. Also, the sudden jumps in output intensity occurs during the tiny steps in input intensity, which is the results we expected.
+We can see that the simulation is behaving exactly as desired! We are increasing and decreasing the input intensity in small smooth steps, and waiting for the output intensity to stabilize before starting the next step. Also, the sudden jumps in output intensity occurs during the tiny steps in input intensity, which is the result we expected.
 
-We can already see that for some input intensities the output intensity is different when increasing or decreasing the intensity. However, this can be visualized more clearly by plotting the output intensity as a function of input intensity. We will do this and compare the simulation result to theory below. We can conveniently sidestep the unit conversion of intensities by expressing the intensity in terms of the dimensionless product :math:`n_2 I`, since it's value is the same in MEEP and SI units.
+We can already see that for some input intensities the output intensity can have two different values depending on if the input intensity is being increased or decreased. However, this can be visualized more clearly by plotting the output intensity as a function of input intensity. We will do this and compare the simulation result to the theory in the code below. We can conveniently sidestep the unit conversion of intensities by expressing the intensities in terms of the dimensionless product :math:`n_2 I`, since it's value is the same in MEEP and SI units.
 
 .. code-block:: python
 
@@ -1188,7 +1196,7 @@ We can already see that for some input intensities the output intensity is diffe
    :width: 90%
    :align: center
 
-We have achieved optical bistability in MEEP! We have successfully reconstructed the hysteresis loop predicted by the theory. The agreement between MEEP and theory is seemingly good, however, it is important to keep in mind that we have fitted the :math:`\alpha` parameter of the theory to the simulation result, as finding the parameter analytically is beyond the scope of our documentation. Hence we cannot conclude that the values given by the simulation are matching the theory, but we can conclude that the functional form of the simulated curve is matching the form of the theoretical curve.
+We have achieved optical bistability in MEEP! We have successfully reconstructed the hysteresis loop predicted by the theory. The agreement between MEEP and theory is seemingly good, however, it is important to keep in mind that we have fitted the :math:`\alpha` parameter of the theory to the simulation result, as finding the value of the parameter analytically is beyond the scope of our documentation. Hence we cannot conclude that the values given by the simulation are matching the theory, but we can conclude that the functional form of the simulated curve is matching the form of the theoretical curve quite well.
 
 Conclusions
 ===========
