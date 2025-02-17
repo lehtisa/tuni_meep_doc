@@ -233,3 +233,16 @@ diffraction pattern, we use NumPys vstack-command.
             )
    plt.axis('off')
    plt.show()
+
+.. figure:: symmetries_and_dimensions_figures/single_slit_whole_propa.png
+   :alt: test text
+   :width: 90%
+   :align: center
+
+.. figure:: symmetries_and_dimensions_figures/2d_diff_pattern.png
+   :alt: test text
+   :width: 90%
+   :align: center
+
+Demo 2: 3D-case rectangular hole
+========================== 
