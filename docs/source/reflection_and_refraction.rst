@@ -119,7 +119,7 @@ To estimate the focal length we examine the electric field at the middle of the 
     plt.plot(pointsSx, abs(center_dataSx), label='Sx')
     plt.plot(pointsSx, Ez2Sx, label='Ez**2/Sx')
     plt.legend(loc="upper right", title="f = {:.2f}".format(focal_length))
-    plt.xlabel('distance')
+    plt.xlabel('distance from lens')
     plt.ylabel('a.u.')
     plt.savefig("Intensity_after_lens.png")
     plt.show()
@@ -170,7 +170,7 @@ The focal length is the length in the plot where the maximum intensity is reache
 Demo 2: Luneburg lens
 =====================
 
-Luneburg lens is a spherically symmetric gradient-index lens. The refractive index of the lens decreases radially from the center of the lens. Certain index profiles have the property to be able to create a perfect geometric image of any two concentric spheres to each other. The simplest solution for this kind of lens of infinite possible solutions was proposed by Rudolf Luneburg in 1944. [3]
+Luneburg lens is a spherically symmetric gradient-index lens. The refractive index of the lens decreases radially from the center of the lens. Certain index profiles have the property to be able to create a perfect geometric image of any two concentric spheres to each other. The simplest solution out of infinite possible solutions for this kind of lens was proposed by Rudolf Luneburg in 1944. [3]
 
 The libraries are imported and cell and perfectly mached layers created as usual.
 
@@ -262,5 +262,5 @@ We can also make an animation of the simulation using Animate2D object and at_ev
 From the figure and the animation we can qualititively see that after the luneburg lens the electric field has became collimated wave and the focal point of the lens lies at infinity.
 
 .. [1] Wikipedia Intensity available:https://en.wikipedia.org/wiki/Intensity_(physics) referenced 11.2.2025
-.. [2] wikipedia Focal length available:https://en.wikipedia.org/wiki/Focal_length referenced 11.2.2025
+.. [2] Wikipedia Focal length available:https://en.wikipedia.org/wiki/Focal_length referenced 11.2.2025
 .. [3] Wikipedia Luneburg Lens available:https://en.wikipedia.org/wiki/Luneburg_lens referenced 18.2.2025
