@@ -1,10 +1,11 @@
+============
 Introduction
 ============
 
 .. _introduction:
 
 What is MEEP?
--------------
+=============
 
 MIT Electromagnetic Equation Propagation (MEEP) is a free and open-source program that uses
 the finite-difference time-domain (FDTD) method to make simulations of electromagnetic phenomenon.
@@ -20,7 +21,7 @@ MEEP has been in active development since 2006 at Massachusetts Institute of Tec
 and is still being maintained by community effort in `GitHub <https://github.com/NanoComp/meep>`_.
 
 Comparison to other electromagnetics programs
----------------------------------------------
+=============================================
 
 The main applications of MEEP are photonic and optics simulations made using FDTD.
 When compared to the finite element method (FEM), another popular method that is used by many programs,
@@ -38,7 +39,7 @@ MEEP being both open-source and providing a large variety of applications means 
 seperate programs for different types of research is not as necessary when it comes to using FDTD.
 
 The goal of this documentation
-------------------------------
+==============================
 
 MEEP already has an official documentation that is much larger and more comprehensive `here <https://meep.readthedocs.io/en/master/#>`_.
 However, this documentation is mainly meant to be for people new to using MEEP.
