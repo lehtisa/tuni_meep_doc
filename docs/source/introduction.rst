@@ -10,13 +10,13 @@ What is Meep?
 MIT Electromagnetic Equation Propagation (Meep) is a free and open-source program that uses
 the finite-difference time-domain (FDTD) method to make simulations of electromagnetic phenomenon.
 Meep simulations evolve fields by discrete time steps that are described by Maxwell’s equations.
-With this method we can essentially get exact results as we make the time steps smaller and smaller.
+With this method we can essentially get exact results as we make the temporal and spatial steps smaller and smaller.
 
 Meep is available for Unix-like operating systems such as Linux, macOS and FreeBSD.
 It can also be used in Windows, but it requires Windows Subsystem for Linux (WSL).
 Meep simulations can be programmed using Python, Scheme or C++ as the programming language.
 This documentation will use Python as the main interface,
-as it is a very familiar programming language for many physicist and easy to learn.
+as it is a very familiar programming language for many physicists and easy to learn.
 Meep has been in active development since 2006 at Massachusetts Institute of Technology,
 and is still being maintained by community effort in `GitHub <https://github.com/NanoComp/meep>`_.
 
@@ -25,7 +25,7 @@ Comparison to other electromagnetics programs
 
 The main applications of Meep are photonic and optics simulations made using FDTD.
 When compared to the finite element method (FEM), another popular method that is used by many programs,
-the FDTD method is much more simple. FEM can solve very complex problems, but requires more complex software as a result.
+the FDTD method is much simpler. FEM can solve very complex problems, but requires more complex software as a result.
 FDTD method is therefore good enough for more simple problems, but still has some flexibility for more complex problems.
 
 To bring up some disadvantages, Meep cannot be installed natively on Windows,
@@ -52,13 +52,14 @@ As such, the documentation is devided into several different sections. The first
 * **Installation** provides a basic guide on how to install the program to computers that run Windows or MacOS
 
 The following sections focus on the different topics, providing a brief overview,
-after which some example demos with their coding are given and guided through:
-
-* **Double-slit diffraction** (This section also provides the basics on building a Meep simulation)
-
-* **Symmetries and dimensions** (2- and 3-dimensional objects)
+after which some example demos with their coding are given and guided through.
+The first two sections provide a good start on the basics on building a Meep simulation:
 
 * **Waveguides**
+
+* **Double-slit diffraction**
+
+* **Symmetries and dimensions** (2- and 3-dimensional simulations)
 
 * **Refraction** (Refraction in a spherical lens, Luneburg Lens)
 
