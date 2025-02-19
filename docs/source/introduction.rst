@@ -55,9 +55,9 @@ The following sections focus on the different topics, providing a brief overview
 after which some example demos with their coding are given and guided through.
 The first two sections provide a good start on the basics on building a Meep simulation:
 
-* **Waveguides**
+* **Waveguides** (A good starting point)
 
-* **Double-slit diffraction**
+* **Double-slit diffraction** (Another good starting point)
 
 * **Symmetries and dimensions** (2- and 3-dimensional simulations)
 
