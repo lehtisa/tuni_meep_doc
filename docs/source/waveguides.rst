@@ -139,7 +139,7 @@ Now, before running the simulation, it is a good idea to check that we have set 
    sim.plot2D()
    plt.show()
 
-.. figure:: waveguide_figures/1_simulation_setup.pdf
+.. figure:: waveguide_figures/1_simulation_setup.png
    :alt: Simulation setup
    :width: 90%
    :align: center
@@ -165,7 +165,7 @@ Now that the simulation has run, we can use ``plot2D()`` to see what kind of res
    plt.savefig("2_after_first_run.pdf")
    plt.show()
 
-.. figure:: waveguide_figures/2_after_first_run.pdf
+.. figure:: waveguide_figures/2_after_first_run.png
    :alt: After first run
    :width: 90%
    :align: center
@@ -203,7 +203,7 @@ It is nice figure but if you want more control how to figure looks, you could pl
    plt.show()
 
 
-.. figure:: waveguide_figures/3_improved_figure.pdf
+.. figure:: waveguide_figures/3_improved_figure.png
    :alt: Improved figure
    :width: 90%
    :align: center
@@ -269,7 +269,7 @@ There are multiple ways of doing this but here we choose to inspect the magnitud
 
 This results in the following figure:
 
-.. figure:: waveguide_figures/4_convergence_study.pdf
+.. figure:: waveguide_figures/4_convergence_study.png
    :alt: Convergence study
    :width: 90%
    :align: center
