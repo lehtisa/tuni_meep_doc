@@ -16,9 +16,9 @@ Contents
    introduction
    theory
    installation
+   waveguides
    double_slit
    symmetries_and_dimensions
-   waveguides
    reflection_and_refraction
    nonlinear_phenomena
    applied_demo
