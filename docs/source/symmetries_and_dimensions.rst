@@ -473,3 +473,99 @@ Now that our data is in a separate file, we can visualize it outside of python w
 
 Demo 3: Cylindrical coordinates, circular apreture
 ========================== 
+
+Next wwe will simulate the diffraction of light in a circular aperture. 
+We could do this by exploiting two directional symmetry as in the previous 
+demo, but Meep offers an even better method for this; cylindrical coordinates. 
+Cylindrical symmetry can be activated in the simulation by defining 
+the dimensions as ``CYLINDRICAL``. By doing so Meep interprets all vectors 
+as :math:`(r,\theta,z)` where r is the radius of the cell, 
+:math:`/theta` is the angle from the positive r-axis around z-axis and 
+z is the length of the cell, instead of :math:`(x,y,z)`.  
+
+.. code-block :: python
+   dimensions = mp.CYLINDRICAL
+   cellRadius = 20.0
+   cellLength = 40.0
+
+   cell_size = mp.Vector3(cellRadius,0,cellLength)
+
+When there is full rotational symmetry we can set the values of :math:`\theta` 
+to be zero.
+
+This time we will construct the geometry of the cell by adding a singular block 
+which spans from the edge of the aperture to the cell wall in radial direction. 
+Because of cylindrical symmetry, this block will wrap around all values for 
+:math:`\theta` and thus form a wall with a circular aperture.
+
+.. code-block :: python
+   wallPos = 10
+   wallWidth = 0.5
+   apertureRadius = 1
+   wallMaterial = mp.Medium(epsilon = 1e6)
+
+   geometry = [mp.Block(mp.Vector3(cellRadius - apertureRadius, 1e20, wallWidth),
+                           center = mp.Vector3((cellRadius+apertureRadius)/2, 0, -17),
+                           material = wallMaterial)]
+
+   pmlThickness = 1.0
+   pmlLayers = [mp.PML(pmlThickness)]
+
+As a source, we will study the radial component of the field, while in previous 
+demos we worked with the z-directional field component. Otherwise we follow 
+a similar method.
+
+.. code-block :: python
+   sourceLambda = 0.5
+   sourceFrequency = 1 / sourceLambda
+
+   sources = [mp.Source(mp.ContinuousSource(sourceFrequency,fwidth=0.2*sourceFrequency,is_integrated=True),
+                        component=mp.Er,
+                        center=mp.Vector3(0.5*cellRadius,0,-0.5*cellLength+1),
+                        size=mp.Vector3(cellRadius))]
+
+For acquiring the data we could use the h5-files as before, but this time 
+we handle the data solely inside python. This is done with the ``get_array()`` -method.
+
+.. code-block :: python
+   resolution = 25
+
+   sim = mp.Simulation(cell_size=cell_size,
+                     boundary_layers=pmlLayers,
+                     resolution=resolution,
+                     geometry=geometry,
+                     sources=sources,
+                     dimensions=dimensions,
+                     force_complex_fields=True,
+                     m=-1)
+
+   sim.run(until=cellLength+10)
+
+   nonpmlVol = mp.Volume(center=mp.Vector3(0.5*cellRadius),
+                        size=mp.Vector3(cellRadius,0,cellLength))
+   erData = sim.get_array(component=mp.Er,vol=nonpmlVol)
+                                                                                
+Due to the symmetry our data is not calculated along the whole cell,
+but only at one specific :math:`\theta` value. Therefore we need to copy the data 
+for all angular values. The data can then be plotted with pyplot in polar coordinates.
+
+.. code-block :: python
+   r = np.linspace(0,cellRadius,erData.shape[1])
+   z = np.linspace(-0.5*cellLength,0.5*cellLength,erData.shape[0])
+   
+   theta = np.linspace(0,2*np.pi, 100)
+
+   #making up some data    
+   theta,r = np.meshgrid(theta,r)
+   values_2d = np.sin(theta)*np.exp(-r)
+
+   plt.subplots(1,1,subplot_kw=dict(projection='polar'))
+   plt.pcolormesh(theta,r,np.tile(np.real(erData[-10]),
+                     (100,1)).T, cmap='inferno', shading='gouraud')
+   plt.axis('off')
+   plt.show()
+
+.. figure:: symmetries_and_dimensions_figures/3d_circle_diff_pattern.png
+   :alt: test text
+   :width: 90%
+   :align: center
