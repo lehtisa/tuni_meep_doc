@@ -37,8 +37,6 @@ electric conductivities respectively. The divergence equations for the Maxwell's
 
     \nabla \cdot \mathbf{D} = - \int^t \nabla \cdot (\mathbf{J}(t') + \sigma_D \mathbf{D})dt' \equiv \rho
 
-Generally,  depends not only on position but also
-
 Usually, the position, frequency (material dispersion) and the field :math:`\mathbf{E}` itself (nonlinearity) affect :math:`\varepsilon`
 and may cause loss or gain of absorption in the material. You can read more about the effects of materials and how to apply them
 in the `offcial documentation <https://meep.readthedocs.io/en/latest/Materials/>`_.
