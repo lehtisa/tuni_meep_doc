@@ -1,13 +1,24 @@
 
-.. _symmetries_and_dimensions:
-
-This is symmetries and dimensions.
-
 ============
 Symmetries and dimensions
 ============
 
 .. _symmetries_and_dimensions:
+
+Introduction
+============
+
+In these demos we will continue studying interference produced by light 
+diffracting in an aperture. The key point in these demos will be the exploitation 
+of symmetries and dimensions. We will focus mainly on showing simple use cases of 
+the symmetries and higher dimensions. For curious readers, `Meeps 
+official documentation <https://meep.readthedocs.io/en/latest/Exploiting_Symmetry/>`_ 
+has more information about how Meep handles the symmetries and what requirements 
+there are regarding them.
+
+We will first show a simple 2-dimensional case with single slit diffraction. Building on this 
+demo, we will expand it to 3 dimensions in the form of a rectangular slit. Lastly we will exploit 
+the possibility of using cylindrical coordinates in the case of a circular aperture diffraction.
 
 Demo 1: 2D-case
 ========================== 
@@ -484,7 +495,7 @@ as :math:`(r,\theta,z)` where r is the radius of the cell,
 z is the length of the cell, instead of :math:`(x,y,z)`.  
 
 .. code-block :: python
-   
+
    dimensions = mp.CYLINDRICAL
    cellRadius = 20.0
    cellLength = 40.0
