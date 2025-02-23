@@ -108,7 +108,7 @@ this and we set it just outside the left border PML.
 
 The resolution of our simulation will be calculated with the smallest
 length of our simulation as recommended by the Meeps official documentation.
- We also set ``force_complex_fields`` to
+We also set ``force_complex_fields`` to
 True. This will automatically double the simulation time but
 including the complex phase terms of our field is crucial for
 simulating interference.
@@ -263,7 +263,8 @@ This
 Adding data in the z-direction and thus increasing the dimensions from 2D to 3D 
 does not require any explicit actions. We can simply use vectors with 3 objects 
 instead of 2 and Meep will know the dimensions. This is because so far Meep has interpreted 
-our vectors as ``(_,_,0)``, indicating the third dimension to be 0.
+our vectors as ``(_,_,0)``, indicating the third dimension to be 0 (strictly speaking the 
+dielectric data will be assumed uniform in that dimension).
 
 .. code-block :: python
 
