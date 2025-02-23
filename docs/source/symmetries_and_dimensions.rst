@@ -484,6 +484,7 @@ as :math:`(r,\theta,z)` where r is the radius of the cell,
 z is the length of the cell, instead of :math:`(x,y,z)`.  
 
 .. code-block :: python
+   
    dimensions = mp.CYLINDRICAL
    cellRadius = 20.0
    cellLength = 40.0
@@ -499,6 +500,7 @@ Because of cylindrical symmetry, this block will wrap around all values for
 :math:`\theta` and thus form a wall with a circular aperture.
 
 .. code-block :: python
+
    wallPos = 10
    wallWidth = 0.5
    apertureRadius = 1
@@ -516,6 +518,7 @@ demos we worked with the z-directional field component. Otherwise we follow
 a similar method.
 
 .. code-block :: python
+
    sourceLambda = 0.5
    sourceFrequency = 1 / sourceLambda
 
@@ -528,6 +531,7 @@ For acquiring the data we could use the h5-files as before, but this time
 we handle the data solely inside python. This is done with the ``get_array()`` -method.
 
 .. code-block :: python
+
    resolution = 25
 
    sim = mp.Simulation(cell_size=cell_size,
@@ -550,6 +554,7 @@ but only at one specific :math:`\theta` value. Therefore we need to copy the dat
 for all angular values. The data can then be plotted with pyplot in polar coordinates.
 
 .. code-block :: python
+
    r = np.linspace(0,cellRadius,erData.shape[1])
    z = np.linspace(-0.5*cellLength,0.5*cellLength,erData.shape[0])
    
