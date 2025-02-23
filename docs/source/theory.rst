@@ -27,7 +27,7 @@ shows their time evolution:
 
 where :math:`\mathbf{B}` is the magnetic flux density and :math:`\mu` is the magnetic permeability. :math:`\mathbf{B}` is often also
 called the magnetic field, but should not be confused with (:math:`\mathbf{H})`. :math:`\mathbf{D}` is the displacement field,
-:math:`\varepsilon` is the dielectric constant, :math:`\mathbf{J}` is the current density of electric charge and :math:`\mathbf{J}<sub>*B*</sub>`
+:math:`\varepsilon` is the dielectric constant, :math:`\mathbf{J}` is the current density of electric charge and :math:`\mathbf{J}_*B*`
 is the magnetic-charge current density. The terms :math:`\sigma_B` and :math:`\sigma_D` refer to the frequency-independent magnetic and
 electric conductivities respectively. The divergence equations for the Maxwell's equations can be written implicitly as follows:
 
