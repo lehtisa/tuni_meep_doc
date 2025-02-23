@@ -257,12 +257,9 @@ diffraction pattern, we use NumPys ``vstack``.
 Demo 2: 3D-case, rectangular aperture
 ========================== 
 
-This 
-
-
 Adding data in the z-direction and thus increasing the dimensions from 2D to 3D 
 does not require any explicit actions. We can simply use vectors with 3 objects 
-instead of 2 and Meep will know the dimensions. This is because so far Meep has interpreted 
+instead of 2 and Meep will deduct the dimensions. This is because so far Meep has interpreted 
 our vectors as ``(_,_,0)``, indicating the third dimension to be 0 (strictly speaking the 
 dielectric data will be assumed uniform in that dimension).
 
@@ -308,7 +305,7 @@ objects.
 Note, that there is an additional ``phase`` argument on the z-directional symmetry. This is because 
 the field symmetry requires information about the phase of the field. Even sources are implicated by a phase factor 
 of +1 and odd sources by -1. By default the phase factor is set to +1. In our case, however the z-directional field will
- be an odd source. 
+be an odd source. 
 
 Our dielectric data will consist of a rectangular hole in a wall. Defining 3D-structures in Meep requires 
 a bit of creativity sometimes as we are limited to quite a narrow set of objects. We will construct 
@@ -453,7 +450,7 @@ by using the first frame of the simulation.
 Visualizing the 3D data in Meep is possible with using the ``plot3D()`` function on the simulation, 
 but in most cases this method is not sufficient. This is where saving the data in a h5-file comes in handy. 
 Now that our data is in a separate file, we can visualize it outside of python with for example 
-`Paraview <https://www.paraview.org>`_ or in easily accessible websites such as `myhdf5 <https://myhdf5.hdfgroup.org/help>`.
+`Paraview <https://www.paraview.org>`_ or in easily accessible websites such as `myhdf5 <https://myhdf5.hdfgroup.org/help>`_.
 
 
 
@@ -492,7 +489,7 @@ demo, but Meep offers an even better method for this; cylindrical coordinates.
 Cylindrical symmetry can be activated in the simulation by defining 
 the dimensions as ``CYLINDRICAL``. By doing so Meep interprets all vectors 
 as :math:`(r,\theta,z)` where r is the radius of the cell, 
-:math:`/theta` is the angle from the positive r-axis around z-axis and 
+:math:`\theta` is the angle from the positive r-axis around z-axis and 
 z is the length of the cell, instead of :math:`(x,y,z)`.  
 
 .. code-block :: python
