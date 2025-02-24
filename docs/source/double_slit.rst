@@ -203,15 +203,15 @@ The equation for the theoretical intensity distribution is
 .. math::
 
     \frac{I}{I_0}=\left(\frac{\sin\beta}{\beta}\right)^2\cos^2\alpha,
-    \alpha =\frac{\pi gap\sin \theta }{\lambda },
-    \beta =\frac{\pi aperture\sin \theta }{\lambda }.
+    \alpha =\frac{\pi g\sin \theta }{\lambda },
+    \beta =\frac{\pi a\sin \theta }{\lambda }.
 
-where :math:`gap` is the distance between the centers of the slits, :math:`aperture` is the size of the slit and :math:`\theta` is the
+where :math:`g` is the distance between the centers of the slits, :math:`a` is the size of the slit and :math:`\theta` is the
 angle of direction away from the double slit.
 
-Let us now move to simulating the intensity distribution. The cell size, simulation geometry and current source will remain the same, but the simulation will be ran multiple times at different resolutions. We will also be enabling the calculation of complex field components in the simulation definition to let us extract intensity directly from the field data. We will be extracting arrays of field data at multiple distances away from the double-slit to see how the simulated intensity distribution developes as it propagates. Adding complex components will approximately double the simulation time. We will also be running the simulation at doubling resolutions from 10 to 80. At a resolution as high as 80, running the simulation will take approximately an hour. 
+Let us now move to simulating the intensity distribution. The cell size, simulation geometry and current source will remain the same, but the simulation will be ran multiple times at different resolutions. We will also be enabling the calculation of complex field components in the simulation definition to let us extract intensity directly from the field data. We will be extracting arrays of field data at multiple distances away from the double-slit to see how the simulated intensity distribution developes as it propagates. Adding complex components will approximately double the simulation time. We will also be running the simulation at doubling resolutions from 10 to 80. At a resolution as high as 80, running the simulation will take approximately an hour, depending heavily on the specs of you computer. 
 
-Now let us begin showing the changes to the code. Let us add the matplotlib library as is for plot colormaps.
+Now let us begin showing the changes to the code. Let us add the Matplotlib library as is for plot colormaps.
 
 .. code-block:: python
 
