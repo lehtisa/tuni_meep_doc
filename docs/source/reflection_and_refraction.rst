@@ -89,6 +89,7 @@ Now we run the simulation until 75. This time is long enough because then the wa
     plt.figure()
     plt.imshow(abs(eps_data).transpose(), interpolation="spline36", cmap="binary", origin="lower")
     plt.imshow(abs(ez_data).transpose(), interpolation="spline36", cmap="RdBu", alpha=0.9, origin="lower")
+    plt.axis("off")
 
 .. figure:: refraction_figures/lens_end_field.png
    :alt: test text
@@ -118,6 +119,8 @@ To estimate the focal length we examine the electric field at the middle of the 
     plt.plot(pointsSx, abs(center_dataSx), label='Sx')
     plt.plot(pointsSx, Ez2Sx, label='Ez**2/Sx')
     plt.legend(loc="upper right", title="f = {:.2f}".format(focal_length))
+    plt.xlabel('distance from lens')
+    plt.ylabel('a.u.')
     plt.savefig("Intensity_after_lens.png")
     plt.show()
 
@@ -126,7 +129,7 @@ To estimate the focal length we examine the electric field at the middle of the 
    :width: 90%
    :align: center
 
-We can create animation of the simulation using Animate2D object and at_every function.
+We can create an animation of the simulation using Animate2D object and at_every function.
 
 .. code-block :: python
 
@@ -142,15 +145,15 @@ We can create animation of the simulation using Animate2D object and at_every fu
     filename = "./Lens_animation.mp4"
     Animate.to_mp4(10, filename)
 
-We notice the ratio of :math:`\left|E_{z}\right|^{2}` and :math:`S_{x}` is 2 other than at the close vicinity from the lens where there is a lot of error. Intensity is defined as the magnitude of the Poynting vector but also corresponds to the square of the electric field:
+We notice the ratio of :math:`\left|E_{z}\right|^{2}` and :math:`S_{x}` is 2 other than at the close vicinity from the lens where there is a lot of error. Intensity is defined as the magnitude of the Poynting vector but also corresponds to the square of the electric field [1]:
 
 .. math::
 
-    \frac{1}{2}cn\varepsilon_{0}\left|{E}\right|^{2}
+    I=\frac{1}{2}cn\varepsilon_{0}\left|{E}\right|^{2}
 
 In meep speed of light and vacuum permittivity are defined as 1. Thus the square of Ez is twice as large as Sz as it should be.
 
-Focal length depeds on refractive index and curvature of the lens according to Lens-Maker's equation:
+Focal length depeds on refractive index and curvature of the lens according to Lens-Maker's equation [2]:
 
 .. math::
 
@@ -167,4 +170,97 @@ The focal length is the length in the plot where the maximum intensity is reache
 Demo 2: Luneburg lens
 =====================
 
-Luneburg lens
+Luneburg lens is a spherically symmetric gradient-index lens. The refractive index of the lens decreases radially from the center of the lens. Certain index profiles have the property to be able to create a perfect geometric image of any two concentric spheres to each other. The simplest solution out of infinite possible solutions for this kind of lens was proposed by Rudolf Luneburg in 1944. [3]
+
+The libraries are imported and cell and perfectly mached layers created as usual.
+
+.. code-block :: python
+
+    import meep as mp
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    sx=32
+    sy=20
+    cell = mp.Vector3(sx,sy,0)
+
+    dpml=1.0
+    pml_layers=[mp.PML(dpml)]
+
+We place a dot source at radius of the lens (the largest sphere we are going to create).
+
+.. code-block :: python
+
+    full_radius = 8
+    sources = [mp.Source(mp.ContinuousSource(frequency=1),
+                        component=mp.Ez,
+                        center=mp.Vector3(-full_radius,0))]
+
+For Luneburg's solution for an ideal Luneburg lens we have the following equation for the refractive index:
+
+.. math::
+
+    n=\sqrt{2-{\left(\frac{r}{R}\right)}^2}
+
+Where R is the full radius of the lens and r is the radial distance from center [3]. We can approximate the lens by creating a large number of overlapping spheres where the radius gets smaller and the refractive index grows larger as we iterate. This can be done easily in python by using a while loop.
+
+.. code-block :: python
+
+    geometry=[]
+    i=0
+    sphere_num = 100
+    while i<sphere_num:
+        geometry.append(mp.Sphere(center=mp.Vector3(0,0),
+                radius=full_radius-i*full_radius/sphere_num,
+                material=mp.Medium(index=np.sqrt(2-((sphere_num-i)/sphere_num) ** 2))))
+        i = i+1
+
+We define the resolution, create the simulation object and run the simulation. After that we can plot the field at the end of the simulation and save the figure.
+
+
+.. code-block :: python
+
+    resolution=20
+    sim = mp.Simulation(cell_size=cell,
+                        boundary_layers=pml_layers,
+                        geometry=geometry,
+                        sources=sources,
+                        resolution=resolution)
+
+    sim.run(until=70)
+
+    eps_data = sim.get_array(center=mp.Vector3(), size=cell, component=mp.Dielectric)
+    ez_data = sim.get_array(center=mp.Vector3(), size=cell, component=mp.Ez)
+    plt.figure()
+    plt.imshow(eps_data.transpose(), interpolation="spline36", cmap="binary")
+    plt.imshow(ez_data.transpose(), interpolation="spline36", cmap="RdBu", alpha=0.9)
+    plt.axis("off")
+    plt.savefig("luneburg_end_field.png")
+    plt.show()
+
+.. figure:: refraction_figures/luneburg_end_field.png
+   :alt: test text
+   :width: 90%
+   :align: center
+
+We can also make an animation of the simulation using Animate2D object and at_every funtion.
+
+.. code-block :: python
+
+    sim.reset_meep()
+
+    f = plt.figure(dpi=100)
+    Animate = mp.Animate2D(fields=mp.Ez, f=f, realtime=False, normalize=True)
+    plt.close()
+
+    sim.run(mp.at_every(1, Animate), until=70)
+    plt.close()
+
+    filename = "./Luneburg_lens_animation.mp4"
+    Animate.to_mp4(10, filename)
+
+From the figure and the animation we can qualititively see that after the luneburg lens the electric field has became collimated wave and the focal point of the lens lies at infinity.
+
+.. [1] Wikipedia Intensity available:https://en.wikipedia.org/wiki/Intensity_(physics) referenced 11.2.2025
+.. [2] Wikipedia Focal length available:https://en.wikipedia.org/wiki/Focal_length referenced 11.2.2025
+.. [3] Wikipedia Luneburg Lens available:https://en.wikipedia.org/wiki/Luneburg_lens referenced 18.2.2025
