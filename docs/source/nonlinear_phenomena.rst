@@ -707,7 +707,8 @@ This demo provides an example simulation of a third order nonlinear effect. We w
 This demo will discuss the following practical matters of simulation:
 
 - Simulations with :math:`\chi^{(3)}` nonlinearity
-- Making a simulation with highly customized dynamics: we use a source whose behaviour is automatically determined by the output intensity
+- Determining intensity from instantaneous electric field when not using complex fields
+- Making a simulation with highly customized dynamics: we use a source with a custom envelope that automatically adapts based on the output intensity
 
 The code used to produce this demo is available on `GitHub <https://github.com/lehtisa/tuni_meep_doc/blob/main/demo_codes/optical_bistability.ipynb>`_.
 
@@ -1206,7 +1207,7 @@ We can already see that for some input intensities the output intensity can have
    :width: 90%
    :align: center
 
-We have achieved optical bistability in Meep! We have successfully reconstructed the hysteresis loop predicted by the theory. The agreement between Meep and theory is seemingly good, however, it is important to keep in mind that we have fitted the :math:`\alpha` parameter of the theory to the simulation result, as finding the value of the parameter analytically is beyond the scope of our documentation. Hence we cannot conclude that the values given by the simulation are matching the theory, but we can conclude that the functional form of the simulated curve is matching the form of the theoretical curve quite well.
+We have achieved optical bistability in Meep! We have successfully simulated the optically bistable hysteresis loop predicted by the theory. The agreement between Meep and theory is seemingly good, however, it is important to keep in mind that we have fitted the :math:`\alpha` parameter of the theory to the simulation result, as finding the value of the parameter analytically is beyond the scope of our documentation. Hence we cannot conclude that the values given by the simulation are matching the theory, but we can conclude that the functional form of the simulated curve is matching the form of the theoretical curve quite well.
 
 Conclusions
 ===========

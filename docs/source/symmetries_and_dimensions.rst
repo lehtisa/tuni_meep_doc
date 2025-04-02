@@ -1,13 +1,24 @@
 
-.. _symmetries_and_dimensions:
-
-This is symmetries and dimensions.
-
 ============
 Symmetries and dimensions
 ============
 
 .. _symmetries_and_dimensions:
+
+Introduction
+============
+
+In these demos we will continue studying interference produced by light 
+diffracting in an aperture. The key point in these demos will be the exploitation 
+of symmetries and dimensions. We will focus mainly on showing simple use cases of 
+the symmetries and higher dimensions. For curious readers, `Meeps 
+official documentation <https://meep.readthedocs.io/en/latest/Exploiting_Symmetry/>`_ 
+has more information about how Meep handles the symmetries and what requirements 
+there are regarding them.
+
+We will first show a simple 2-dimensional case with single slit diffraction. Building on this 
+demo, we will expand it to 3 dimensions in the form of a rectangular slit. Lastly we will exploit 
+the possibility of using cylindrical coordinates in the case of a circular aperture diffraction.
 
 Demo 1: 2D-case
 ========================== 
@@ -17,7 +28,7 @@ We will firstly import all necessary libraries. In addition to the
 libraries mentioned in previous sections we will also import 'h5py'.
 H5py is a python package used for storing data in H5DF-form. In this
 demo we will introduce only the very basics of using this package. A
-more thorough tutorial can be found on LINK.
+more thorough tutorial can be found on the `h5py documentation <https://www.h5py.org>`_.
 
 
 .. code-block :: python
@@ -32,8 +43,8 @@ more thorough tutorial can be found on LINK.
 
 Our simulation cell will be a 30 by 20 rectangle. For a more modular
 code, we will make variable for the center of our cell. We form the
-single slit by adding two blocks to the cell. We make sure the wall
-is not penetrated by giving the blocks substantial values for
+single slit by adding two blocks to the cell. We make sure the electric field will not 
+penetrate the wall by giving the blocks substantial values for
 epsilon. The cell will also be surrounded by the PML layer as in most
 cases.
 
@@ -73,7 +84,7 @@ cases.
 
 
 Our light source will produce 500 nm light as a wavefront which spans
-the whole y-dircetion of the cell. We use Meeps ContinousSource for
+the whole y-dircetion of the cell. We use Meeps ``ContinousSource`` object for
 this and we set it just outside the left border PML.
 
 
@@ -95,12 +106,12 @@ this and we set it just outside the left border PML.
 
 
 
-The resolution of our simulation will be proportional to the smallest
-length of our simulation. We also set the force_complex_fields to
+The resolution of our simulation will be calculated with the smallest
+length of our simulation as recommended by the Meeps official documentation.
+We also set ``force_complex_fields`` to
 True. This will automatically double the simulation time but
 including the complex phase terms of our field is crucial for
-precisely simulating interference.
-
+simulating interference.
 
 
 .. code-block :: python
@@ -125,7 +136,7 @@ precisely simulating interference.
 
 
 
-We extract the field and dielectricc data into a h5 file. This is a
+We extract the field and dielectric data into a h5 file. This is a
 bit unnecessary for the 2D-case, but will come in very handy when we
 increase dimensions to our simulation. Our h5-file consists of a
 dataset for the dielectric data, which stays the same during our
@@ -138,7 +149,7 @@ state of the simulation and one of the final state.
 .. code-block :: python
 
 
-   # Convenience method to extract Ez and dielectric data
+   # Method for extracting Ez and dielectric data
    def getData(sim, cellSize):
          ezData = sim.get_array(
             center=mp.Vector3(), size=cellSize, component=mp.Ez)
@@ -151,11 +162,11 @@ state of the simulation and one of the final state.
 
    def simulate(sim, simPath):
          
-         # Remove previous sim file, if any
+         # Remove previous sim file
          if os.path.exists(simPath):
             os.remove(simPath)
          
-         # Save data to an HDF5 binary file
+         # Save data to an HDF5 file
          with h5py.File(simPath, 'a') as f:
             
             # Save initial state as first frame
@@ -174,7 +185,7 @@ state of the simulation and one of the final state.
             f['ezData'][0]  = ezData
             f['epsData'][:] = epsData
          
-            # Run until the next frame time
+            # Run until the the desired length
             sim.run(until=cell[0]+10)
 
             # Capture electral field data    
@@ -188,12 +199,11 @@ the simulation. The h5-file uses straightforward NumPy and Python
 methaphors wich makes extracting the data back into our code trivial.
 
 
-
 .. code-block :: python
 
    simulate(sim, simPath)
 
-   # Grab final simulation snapshot without time-averaging
+   # Grab dielectric and Ez data from the file
    with h5py.File(simPath, 'r') as f:
          finalSnap = f['ezData'][1]
          finalEps = f['epsData'][:]
@@ -202,7 +212,7 @@ methaphors wich makes extracting the data back into our code trivial.
 
 Finally we plot the data. Each y-directional slice of the simulation
 is expressed as a vector of one axis. To help visualize the
-diffraction pattern, we use NumPys vstack-command.
+diffraction pattern, we use NumPys ``vstack``.
 
 
 
@@ -244,11 +254,14 @@ diffraction pattern, we use NumPys vstack-command.
    :width: 90%
    :align: center
 
-Demo 2: 3D-case rectangular hole
+Demo 2: 3D-case, rectangular aperture
 ========================== 
 
-
-import and domains. Note 3d
+Adding data in the z-direction and thus increasing the dimensions from 2D to 3D 
+does not require any explicit actions. We can simply use vectors with 3 objects 
+instead of 2 and Meep will deduct the dimensions. This is because so far Meep has interpreted 
+our vectors as ``(_,_,0)``, indicating the third dimension to be 0 (strictly speaking the 
+dielectric data will be assumed uniform in that dimension).
 
 .. code-block :: python
 
@@ -274,7 +287,12 @@ import and domains. Note 3d
          domain[5] - domain[4]
          )
 
-Symmetries, note the phase
+
+In our case, the dielectric and field data will have mirror symmetry over the y and the z -planes. 
+Normally Meep does not take this into consideration and calculates the field values in every point 
+in the space. If we, however tell Meep about the symmteries it will only store the number of values 
+necessary considering the symmetries. The symmetries will be stored in a vector as Meeps ``Mirror`` 
+objects.
 
 .. code-block :: python
 
@@ -284,8 +302,14 @@ Symmetries, note the phase
 
 
 
-geometry
+Note, that there is an additional ``phase`` argument on the z-directional symmetry. This is because 
+the field symmetry requires information about the phase of the field. Even sources are implicated by a phase factor 
+of +1 and odd sources by -1. By default the phase factor is set to +1. In our case, however the z-directional field will
+be an odd source. 
 
+Our dielectric data will consist of a rectangular hole in a wall. Defining 3D-structures in Meep requires 
+a bit of creativity sometimes as we are limited to quite a narrow set of objects. We will construct 
+the hole in the wall by adding 4 overlapping ``Block`` objects on the edges of the cell.
 
 
 .. code-block :: python
@@ -314,7 +338,7 @@ geometry
 
 
 
-source
+Constructing the source follows directly from the 2D-case with the addition of using 3D-vectors.
 
 
 
@@ -336,8 +360,14 @@ source
 
 
 
-simulate, be wary of resolution ~ time
+In higher dimensionalities it is important to be cautious of the resolution and the simulation time. 
+The simulation time will increase with a higher factor, the more dimesnions there are. In the 2D-case 
+we used the smallest length of the simulation in choosing the resolution. If we were to use this method 
+now, the simulation time would be in the vicinity of ~20 min with an average laptop. Due to this limitation 
+it is very important to study the convergence with different resolutions in higher dimensions. 
 
+Setting up the simulation is done again similarily with the addition of the symmetries into the ``Simulation`` 
+object.
 
 
 .. code-block :: python
@@ -350,7 +380,7 @@ simulate, be wary of resolution ~ time
 
    pixelCount = 10
    #resolution = int(np.ceil(pixelCount / smallestLength))
-   resolution = 4
+   resolution = 10
 
    sim = mp.Simulation(
          cell_size=cell,
@@ -362,15 +392,7 @@ simulate, be wary of resolution ~ time
          symmetries = symmetries
          )
 
-
-
-getdata and run it
-
-
-
-.. code-block :: python
-
-   # Convenience method to extract Ez and dielectric data
+   # Method for extracting Ez and dielectric data
    def getData(sim, cellSize):
          ezData = sim.get_array(
             center=mp.Vector3(), size=cellSize, component=mp.Ez)
@@ -380,9 +402,8 @@ getdata and run it
 
 
 
-h5py data gathering
-
-
+We will use the exact same method for storing the values in to a h5-file as the dataset shape is defined 
+by using the first frame of the simulation. 
 
 .. code-block :: python
 
@@ -426,19 +447,21 @@ h5py data gathering
 
 
 
-easy plotting data so nicely. Also show the h5d file visualzation
-trick
+Visualizing the 3D data in Meep is possible with using the ``plot3D()`` function on the simulation, 
+but in most cases this method is not sufficient. This is where saving the data in a h5-file comes in handy. 
+Now that our data is in a separate file, we can visualize it outside of python with for example 
+`Paraview <https://www.paraview.org>`_ or in easily accessible websites such as `myhdf5 <https://myhdf5.hdfgroup.org/help>`_.
 
 
 
 .. code-block :: python
 
-   # Grab final simulation snapshot without time-averaging
+   # Grap the final frame
    with h5py.File(simPath, 'r') as f:
          finalSnap = f['ezData'][1]
 
    # Compute intensity as square of the complex amplitude
-   finalSnap = np.abs(finalSnap)
+   finalSnap = np.abs(finalSnap)**2
    vmax = np.max(finalSnap[-1])
 
    plt.figure(2)
@@ -452,6 +475,111 @@ trick
    plt.show()
 
 .. figure:: symmetries_and_dimensions_figures/3d_square_diff_pattern.png
+   :alt: test text
+   :width: 90%
+   :align: center
+
+
+Demo 3: Cylindrical coordinates, circular apreture
+========================== 
+
+Next wwe will simulate the diffraction of light in a circular aperture. 
+We could do this by exploiting two directional symmetry as in the previous 
+demo, but Meep offers an even better method for this; cylindrical coordinates. 
+Cylindrical symmetry can be activated in the simulation by defining 
+the dimensions as ``CYLINDRICAL``. By doing so Meep interprets all vectors 
+as :math:`(r,\theta,z)` where r is the radius of the cell, 
+:math:`\theta` is the angle from the positive r-axis around z-axis and 
+z is the length of the cell, instead of :math:`(x,y,z)`.  
+
+.. code-block :: python
+
+   dimensions = mp.CYLINDRICAL
+   cellRadius = 20.0
+   cellLength = 40.0
+
+   cell_size = mp.Vector3(cellRadius,0,cellLength)
+
+When there is full rotational symmetry we can set the values of :math:`\theta` 
+to be zero.
+
+This time we will construct the geometry of the cell by adding a singular block 
+which spans from the edge of the aperture to the cell wall in radial direction. 
+Because of cylindrical symmetry, this block will wrap around all values for 
+:math:`\theta` and thus form a wall with a circular aperture.
+
+.. code-block :: python
+
+   wallPos = 10
+   wallWidth = 0.5
+   apertureRadius = 1
+   wallMaterial = mp.Medium(epsilon = 1e6)
+
+   geometry = [mp.Block(mp.Vector3(cellRadius - apertureRadius, 1e20, wallWidth),
+                           center = mp.Vector3((cellRadius+apertureRadius)/2, 0, -17),
+                           material = wallMaterial)]
+
+   pmlThickness = 1.0
+   pmlLayers = [mp.PML(pmlThickness)]
+
+As a source, we will study the radial component of the field, while in previous 
+demos we worked with the z-directional field component. Otherwise we follow 
+a similar method.
+
+.. code-block :: python
+
+   sourceLambda = 0.5
+   sourceFrequency = 1 / sourceLambda
+
+   sources = [mp.Source(mp.ContinuousSource(sourceFrequency,fwidth=0.2*sourceFrequency,is_integrated=True),
+                        component=mp.Er,
+                        center=mp.Vector3(0.5*cellRadius,0,-0.5*cellLength+1),
+                        size=mp.Vector3(cellRadius))]
+
+For acquiring the data we could use the h5-files as before, but this time 
+we handle the data solely inside python. This is done with the ``get_array()`` -method.
+
+.. code-block :: python
+
+   resolution = 25
+
+   sim = mp.Simulation(cell_size=cell_size,
+                     boundary_layers=pmlLayers,
+                     resolution=resolution,
+                     geometry=geometry,
+                     sources=sources,
+                     dimensions=dimensions,
+                     force_complex_fields=True,
+                     m=-1)
+
+   sim.run(until=cellLength+10)
+
+   nonpmlVol = mp.Volume(center=mp.Vector3(0.5*cellRadius),
+                        size=mp.Vector3(cellRadius,0,cellLength))
+   erData = sim.get_array(component=mp.Er,vol=nonpmlVol)
+                                                                                
+Due to the symmetry our data is not calculated along the whole cell,
+but only at one specific :math:`\theta` value. Therefore we need to copy the data 
+for all angular values. The data can then be plotted with pyplot in polar coordinates.
+
+.. code-block :: python
+
+   r = np.linspace(0,cellRadius,erData.shape[1])
+   z = np.linspace(-0.5*cellLength,0.5*cellLength,erData.shape[0])
+   
+   theta = np.linspace(0,2*np.pi, 100)
+
+   #making up some data    
+   theta,r = np.meshgrid(theta,r)
+   values_2d = np.sin(theta)*np.exp(-r)
+
+   plt.subplots(1,1,subplot_kw=dict(projection='polar'))
+   plt.pcolormesh(theta,r,np.tile(np.real(erData[-10]),
+                     (100,1)).T, cmap='inferno', shading='gouraud')
+   plt.axis('off')
+   plt.show()
+
+.. figure:: symmetries_and_dimensions_figures/3d_circle_diff_pattern.png
    :alt: test text
    :width: 90%
    :align: center
