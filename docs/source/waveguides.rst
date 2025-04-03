@@ -393,5 +393,32 @@ Now we have a nice animation! Note that we can observe here how to source turns 
    Creating an animation this way is only feasible with small simulations. With large simulations, the size of the h5 file can grow rapidly. Tips for outputting data (and animating) the field propagation are presented `here <https://meep.readthedocs.io/en/latest/Python_Tutorials/Basics/#a-90-bend>`_ in the official Meep documentation. 
 
 
+Demo 2: Dielectric Waveguguides with a Circular Bend
+============
+Now, we will make a numerical experiment to investigate how big transmission losses might happen when the field propagates through a waveguide which has a circular bend, i.e. a bend with a constant bend radius of curvature. In this demo, we do this investigation for one bent waveguide, after which we extend our discussion for waveguides with bends that have different radii of curvature. 
+
+In this demo, we will consider the following matters of simulation:
+
+- Creating a 2D waveguide geometry using GDSII format with Python.
+- Importing a 2D waveguide geometry defined in a GDSII file to Meep. 
+- Keeping track of the flux through specific regions in the waveguide.
+- Simulating the transmission, reflection, and losses in a waveguide.
+- Creating a simulation function. 
+
+Brief explanation of the simulation flow
+----------------------------------------
+Before we start tackling how to simulate transmission and losses, it is explained how we will simulate that. It is good to understand on a basic level what is happening under the hood so we can more intuitively understand what sort of actions we need to implement in the simulation code. A more detailed explanation can be found in the `official Meep documentation <https://meep.readthedocs.io/en/master/Introduction/#transmittancereflectance-spectra>`_, and they also have `an example demo <https://meep.readthedocs.io/en/master/Scheme_Tutorials/Basics/#transmittance-spectrum-of-a-waveguide-bend>`_ on this topic. Nevertheless, we go through the workflow briefly also here. 
+
+Here, we are intersted what is the fraction of the incoming power is transmitted through the waveguide. The power which is not transmitted is either reflected back to where the incident field came from or radiated away. With FDTD, we can in a fairly straightforward way investigate these fractions (i.e. transmittance, reflectance, and scattered loss) over a broadband wavelength range only with a single run, using Fourier transform. 
+
+To calculate power going through an area in the simulation, we need to introduce FluxRegion objects to the simulation in Meep. Meep can calculate the flux by integrating a component of the Poynting vector over the ``FluxRegion``. The frequencies at which the flux is calculated have to be specified. 
+
+In this simulation, we will locate one of these ``FluxRegion`` objects at the end of our waveguide. We can then calculate the transmitted power there. That, however, is not interesting itself – we need to divide the transmitted power with incident power. We do this by running the simulation twice, first without the bend and then with it. In the first simulation, we will calculate the incident power similarly with the FluxRegion object. Then we run the simulation with the bend and calculate the transmitted power. After that, we can simply divide the transmitted power by the incident power and we have our transmittance.
+
+In this demo, we want to keep track of the reflectance also, for the demo to more useful. We introduce another FluxRegion before the bend structure in the second simulation. This keeps track of the flux going through it but the problem is that we must somehow ignore the incident field at this point. For this, the same FluxRegion is also present in the first simulation without the bend. In the first simulation, we keep track of the Fourier-transformed electric and magnetic fields at this point and later in the second run, we can subtract these Fourier-transformed fields from the total field going through this region. The residual fields correspond to the reflected fields and with those, it is possible to calculate the reflected power by integrating the component of the Poynting vector over the ``FluxRegion``. 
+
+All in all, we need to do two simulations: one with the straight waveguide and one with the bent waveguide. Next we will do that in practise.
+
+
 
 .. [1] K. Luke, Y. Okawachi, M. R. E. Lamont, A. L. Gaeta, M. Lipson. Broadband mid-infrared frequency comb generation in a Si3N4 microresonator. Opt. Lett. 40, 4823-4826 (2015)
