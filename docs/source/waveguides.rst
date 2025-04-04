@@ -411,13 +411,341 @@ Before we start tackling how to simulate transmission and losses, it is explaine
 
 Here, we are intersted what is the fraction of the incoming power is transmitted through the waveguide. The power which is not transmitted is either reflected back to where the incident field came from or radiated away. With FDTD, we can in a fairly straightforward way investigate these fractions (i.e. transmittance, reflectance, and scattered loss) over a broadband wavelength range only with a single run, using Fourier transform. 
 
-To calculate power going through an area in the simulation, we need to introduce FluxRegion objects to the simulation in Meep. Meep can calculate the flux by integrating a component of the Poynting vector over the ``FluxRegion``. The frequencies at which the flux is calculated have to be specified. 
+To calculate power going through an area in the simulation, we need to introduce ``FluxRegion`` objects to the simulation in Meep. Meep can calculate the flux by integrating a component of the Poynting vector over the ``FluxRegion``. The frequencies at which the flux is calculated have to be specified. 
 
-In this simulation, we will locate one of these ``FluxRegion`` objects at the end of our waveguide. We can then calculate the transmitted power there. That, however, is not interesting itself – we need to divide the transmitted power with incident power. We do this by running the simulation twice, first without the bend and then with it. In the first simulation, we will calculate the incident power similarly with the FluxRegion object. Then we run the simulation with the bend and calculate the transmitted power. After that, we can simply divide the transmitted power by the incident power and we have our transmittance.
+In this simulation, we will locate one of these ``FluxRegion`` objects at the end of our waveguide. We can then calculate the transmitted power there. That, however, is not interesting itself – we need to divide the transmitted power with incident power. We do this by running the simulation twice, first without the bend and then with it. In the first simulation, we will calculate the incident power similarly with the ``FluxRegion`` object. Then we run the simulation with the bend and calculate the transmitted power. After that, we can simply divide the transmitted power by the incident power and we have our transmittance.
 
-In this demo, we want to keep track of the reflectance also, for the demo to more useful. We introduce another FluxRegion before the bend structure in the second simulation. This keeps track of the flux going through it but the problem is that we must somehow ignore the incident field at this point. For this, the same FluxRegion is also present in the first simulation without the bend. In the first simulation, we keep track of the Fourier-transformed electric and magnetic fields at this point and later in the second run, we can subtract these Fourier-transformed fields from the total field going through this region. The residual fields correspond to the reflected fields and with those, it is possible to calculate the reflected power by integrating the component of the Poynting vector over the ``FluxRegion``. 
+In this demo, we want to keep track of the reflectance also, for the demo to more useful. We introduce another ``FluxRegion`` before the bend structure in the second simulation. This keeps track of the flux going through it but the problem is that we must somehow ignore the incident field at this point. For this, the same ``FluxRegion`` is also present in the first simulation without the bend. In the first simulation, we keep track of the Fourier-transformed electric and magnetic fields at this point and later in the second run, we can subtract these Fourier-transformed fields from the total field going through this region. The residual fields correspond to the reflected fields and with those, it is possible to calculate the reflected power by integrating the component of the Poynting vector over the ``FluxRegion``. 
 
 All in all, we need to do two simulations: one with the straight waveguide and one with the bent waveguide. Next we will do that in practise.
+
+Creating a waveguide shape in GDSII format with Python
+------------------------------------------------------
+Let us begin with defining the desired waveguide shape to a GDSII file. In the first demo, we defined the waveguide geometry within Meep, but that is not always viable, especially with more complex geometries. GDSII is a standard format which is very widely used to define integrated circuit layouts. Hence, there are multiple tools you can use to create the desired shape in this format. For example, a nice way to create these files is a Python library called `gdspy<https://gdspy.readthedocs.io/en/stable/>`_. A good open-source software for inspecting GDSII files is for example `KLayout <https://www.klayout.de>`_. 
+
+.. note::
+   There are also other possibilities to create these kinds of files, for example if you are familiar with AutoCAD, you could save your 2D design as a dxf and convert it to GDSII (for example with Klayout). You should also see another Python library, `GDSFactory <https://gdsfactory.github.io/gdsfactory/index.html>`_. 
+   
+   Remember that you can be creative and come up with your own workflow! 
+
+Our goal here is to create a waveguide geometry that has three different sections:
+
+   #. The first straight section: this is where the source is located.
+   #. The bent section: the region which is bent with a constant radius of curvature.
+   #. The second straight section: this is where ideally the whole field should propagate.
+
+For the normalization run, we also need to specify a straight waveguide geometry. Additionally, for both the bent and the straight waveguide, we need ``FluxRegion`` objects for monitoring the reflected and the transmitted field. 
+
+Naturally, we start by importing important libraries we need here. Note that ``gdspy`` needs to be installed for us to be able to use it. It should be quite easy to add it to your environment with Conda. 
+
+.. code-block:: python
+   import meep as mp
+   import numpy as np
+   import matplotlib.pyplot as plt
+   import os
+   import gdspy
+
+First thing is to define where we want to generate our GDSII files. We specify this in a (constant) variable called ``GDS_DIR``. Make sure to create this directory in the same directory where you are running the Python file. We also name the layers by integers so we can keep track which items are on which layer.
+
+.. code-block:: python
+   GDS_DIR = "./gds_files/"
+
+   SIM_CELL_LAYER = 1                  # simulation cell
+   SRC_LAYER = 2                       # source of the field
+   REFL_MON_LAYER = 3                  # reflection monitor
+
+   WG_LAYER_BENT_WG = 4                # bent waveguide
+   TRAN_MON_LAYER_BENT_WG = 5          # transmission monitor for bent wg
+
+   WG_LAYER_STRAIGHT_WG = 8            # straight waveguide
+   TRAN_MON_LAYER_STRAIGHT_WG = 9      # transmission monitor for straight wg
+
+Next, we define functions where we generate each stucture in the simulation cell. First, we define the waveguide with the circular bend. 
+
+.. code-block:: python
+   def circular_bend(cell, x0, wg_w, br, l1, l2, layer):
+      """
+      Args:
+         cell: gdspy cell
+         x0: reference point for the drawing, a tuple of the form (x,y)
+         wg_w: width of the waveguide
+         br: (maximum) bend radius, float
+         l1: the length of the first straight section, float
+         l2: the length of the second straight section, float
+         layer: layer onto which the structure is saved
+      """
+      # First straight section
+      points = [
+         (x0[0], x0[1]),
+         (x0[0] + l1, x0[1]),
+         (x0[0] + l1, x0[1] + wg_w),
+         (x0[0], x0[1] + wg_w),
+      ]
+      poly = gdspy.Polygon(points, layer=layer)
+      cell.add(poly)
+
+      # Circular arc
+      arc = gdspy.Round(
+         center=(x0[0] + l1, x0[1]-br),
+         radius=br+wg_w,
+         inner_radius=br,
+         initial_angle=0,
+         final_angle=np.pi/2,
+         tolerance=0.001,
+         layer=layer,
+      )
+      cell.add(arc)
+
+      # Second straight section
+      points = [
+         (x0[0] + l1 + br, x0[1] - br ),
+         (x0[0] + l1 + br + wg_w, x0[1] - br),
+         (x0[0] + l1 + br + wg_w, x0[1] - br - l2),
+         (x0[0] + l1 + br, x0[1] - br - l2),
+      ]
+      poly = gdspy.Polygon(points, layer=layer)
+      cell.add(poly)
+
+At first look, the following functions might look intimidating, but they are only mostly playing with the coordinates. They are quite similarly constructed so we will discuss only this in more detail. In this function, we construct first the first straight section of the waveguide, the length of which is l1. We start by defining four points (i.e. the corners) and then joining them together to a closed polygon. Also it is important to add the shape into the cell. 
+
+Next, we create the interesting part: the bend. It is defined as a gdspy.Round object which automatically calculates the points and joins them to a closed polygon shape. Here, the tolerance parameter is good to keep quite small to obtain good accuracy. Remember again to add the shape into the cell. 
+
+Lastly, we create the second straight section. This is very similar to the first straight section. 
+
+We create also the following functions:
+
+- ``source_regions``: This is a line which specifies the location of the source.
+- ``refl_mon``: This is a line which specifies the location of the ``FluxRegion`` monitoring the reflected field.
+- ``tran_mon_bent_wg``: This is a line which specifies the location of the ``FluxRegion`` monitoring the transmitted field in the bent waveguide.
+- ``straight_wg``: This is a shape defining the straight waveguide (for the normalization run).
+- ``tran_mon_straight_wg``: This is a line which specifies the location of the ``FluxRegion`` monitoring the transmitted field in the straight waveguide. 
+- ``sim_cell``: This is a rectangle which speficies the size and the location of the simulation cell.
+
+.. code-block:: python
+   def source_regions(cell, x0, wg_w, l1, layer, offset=4):
+      path = gdspy.FlexPath(
+         [(x0[0] + offset - wg_w, x0[1] + 1 * wg_w), 
+            (x0[0] + offset - wg_w, x0[1])],
+         0,
+         layer=layer,
+      )
+      cell.add(path)
+
+
+   def refl_mon(cell, x0, wg_w, l1, layer, offset=4):
+      path = gdspy.FlexPath(
+         [
+               (x0[0] + l1 - offset, x0[1] + 1.5 * wg_w),
+               (x0[0] + l1 - offset, x0[1] - 0.5 * wg_w),
+         ],
+         0,
+         layer=layer,
+      )
+      cell.add(path)
+
+
+   def tran_mon_bent_wg(cell, x0, wg_w, br, l1, l2, layer, offset=2):
+      path = gdspy.FlexPath(
+         [
+               (x0[0] + l1 + br - 0.5 * wg_w, x0[1] - br - l2 + offset + wg_w),
+               (x0[0] + l1 + br + 1.5 * wg_w, x0[1] - br - l2 + offset + wg_w),
+         ],
+         0,
+         layer=layer,
+      )
+      cell.add(path)
+
+
+   def straight_wg(cell, x0, tol, wg_w, br, l1, l2, layer):
+      # First straight section
+      length = sim_cell(cell, x0, tol, wg_w, br, l1, l2, layer, False)[0]
+      points = [
+         (x0[0], x0[1]),
+         (x0[0] + length, x0[1]),
+         (x0[0] + length, x0[1] + wg_w),
+         (x0[0], x0[1] + wg_w),
+      ]
+      poly = gdspy.Polygon(points, layer=layer)
+      cell.add(poly)
+
+
+   def tran_mon_straight_wg(cell, x0, wg_w, br, l1, l2, layer, offset=2):
+      length = sim_cell(cell, x0, tol, wg_w, br, l1, l2, layer, False)[0]
+      path = gdspy.FlexPath(
+         [
+               (x0[0] + length - offset, x0[1] - 0.5 * wg_w),
+               (x0[0] + length - offset, x0[1] + wg_w + 0.5 * wg_w),
+         ],
+         0,
+         layer=layer,
+      )
+      cell.add(path)
+
+
+   def sim_cell(cell, x0, tol, wg_w, br, l1, l2, layer, add=True):
+      points = [
+         (x0[0], x0[1] + wg_w + tol),
+         (x0[0] + l1 + br + tol, x0[1] + wg_w + tol),
+         (x0[0] + l1 + br + tol, x0[1] - br - l2 - wg_w),
+         (x0[0], x0[1] - br - l2 - wg_w),
+      ]
+      poly = gdspy.Polygon(points, layer=layer)
+      if add:
+         cell.add(poly)
+      return (l1 + br + tol, 2 * wg_w + tol + br + l2)  # x, y size
+
+Let us define the waveguide to be 0.5 µm wide and choose the straight sections to be for example 20 µm and 10 µm long. Here we use the bend radius of 0.5 µm. We also define the filename. 
+
+.. code-block:: python
+   wg_w = 0.5      # waveguide width
+   br = 0.5        # bend radius 
+   l1 = 20         # length of the first straight section
+   l2 = 10         # length of the second straight section
+   tol = 3         # spacing used between the waveguide and simulation cell edge
+
+   filename = GDS_DIR + f"{br}.gds" 
+
+Now, to generate the shapes, we need to create a gds library and add a cell to it. Then to this cell, we can add the desired waveguide shape and monitors, simulation cell etc. 
+
+.. code-block:: python
+   # The GDSII file is called a library, which contains multiple cells.
+   lib = gdspy.GdsLibrary()
+   # Geometry must be placed in cells.
+   cell = lib.new_cell(f"{br}")
+
+For the import to work properly in Meep, it is a good idea (you'll thank yourself later) to center the geometry such that the center of the simulation cell is in the origin in the GDSII coordinate system. With our convenient functions, it is now very straightforward to build the desired waveguide shape. Lastly, we need to save the gds library with the cell containing all the objects we have created in a GDSII file. 
+
+.. code-block:: python
+   # x0 is such that the structure is centered at the origin
+   x0 = ((-l1 - br - tol) / 2, (l2 + br - tol) / 2)
+
+   # common layers
+   sim_cell(cell, x0, tol, wg_w, br, l1, l2, SIM_CELL_LAYER)
+   source_regions(cell, x0, wg_w, l1, SRC_LAYER)
+   refl_mon(cell, x0, wg_w, l1, REFL_MON_LAYER)
+
+   # layers for bent wg
+   circular_bend(cell, x0, wg_w, br, l1, l2, WG_LAYER_BENT_WG)
+   tran_mon_bent_wg(cell, x0, wg_w, br, l1, l2, TRAN_MON_LAYER_BENT_WG)
+
+   # layers for straight wg
+   straight_wg(cell, x0, tol, wg_w, br, l1, l2, WG_LAYER_STRAIGHT_WG)
+   tran_mon_straight_wg(cell, x0, wg_w, br, l1, l2, TRAN_MON_LAYER_STRAIGHT_WG)
+
+   # layer to identify the center
+   test = gdspy.Round((0, 0), 1, 1, 0, 2 * np.pi, 0.001)
+   cell.add(test)
+
+   lib.write_gds(filename)  # Save the library in a file
+
+Now we can see the file we have created for example in KLayout. We should see something like this:
+
+.. figure:: waveguide_figures/6_GDSII.png
+   :alt: Constructed structure in a GDSII file
+   :width: 90%
+   :align: center
+
+Importing the structure to Meep
+-------------------------------
+We have now defined the 2D geometry of our simulation in the GDSII files. Before we import the contents of the file into Meep, we must specify what are the dimensions fo the situation in the third dimension. Also, this a good place to specify the material of the waveguide and the thickness of the perfectly matched layers. For simplicity, the waveguide is designed to be very tall, similar to the first demo (meaning it has a large extent in the z-dimension). We assign large values to ``wg_zmin`` and ``wg_zmax`` instead of ``-mp.Inf`` and ``mp.Inf``, as using infinity may sometimes cause errors. We also set the resolution of the simulation here. 
+
+..
+   Also note here that the height of the waveguide should not matter in this simulation. 
+
+.. code-block:: python
+   # Define simulation parameters
+   cell_zmin = 0      # simulation cell zmin
+   cell_zmax = 0      # simulation cell zmax
+
+   pml_w = 1.0
+
+   wg_zmin = -100     # waveguide region zmin
+   wg_zmax = 100      # waveguide region zmax
+
+   wg_material = mp.Medium(index=2)  
+
+   resolution = 20
+
+.. note::
+   Here we are convinced that with the resolution of 20, the simulation is converged. However, in your own simulations, you should remember to check the convergence. 
+
+We can now set the wavelength area of the interest here. This time we will use a Gaussian source with a central frequency ``fcen`` and some width in frequency ``df``. Meep monitors the fluxes only on frequency range :math:`[f_\mathrm{cen}-\frac{\mathrm{d}f}{2},f_\mathrm{cen}+\frac{\mathrm{d}f}{2}]` in order to avoid numerical errors which could occur due to too small intensity. In the code, we specify the desired wavelength range and then calculate these parameters. We also set the parameter ``nfreq``which defines the number of different frequencies Meep uses when monitoring. 
+
+.. code-block:: python
+   # wavelength range
+   wl_begin = 1
+   wl_end = 10
+
+   fcen = (1/wl_begin+1/wl_end) / 2   # central frequency
+   df = np.abs(1/wl_end-1/wl_begin)   # width in frequency 
+   nfreq = 1000        # number of different frequencies
+
+We can now proceed with importing the shapes from the file to Meep. For the shape of the dielectric waveguide, this happens via the command ``mp.get_GDSII_prisms`` which reads the file and returns the shape conveniently in the same format as used in the simulation object. 
+
+For the locations and sizes of the simulation cell, source and flux monitors, we use the command ``mp.GDSII_vol``. Later when we specify, as is customary, the sources object, we specify volume instead of center and size as we did in the first demo.  
+
+.. code-block:: python
+   # Read volumes for cell, geometry, source region 
+   # and flux monitors from the GDSII file
+   sim_cell = mp.GDSII_vol(filename, SIM_CELL_LAYER, cell_zmin, cell_zmax)
+   straight_wg = mp.get_GDSII_prisms(
+      wg_material, filename, WG_LAYER_STRAIGHT_WG, wg_zmin, wg_zmax
+   ) # the straight waveguide is needed for the normalization run
+   bent_wg = mp.get_GDSII_prisms(
+      wg_material, filename, WG_LAYER_BENT_WG, wg_zmin, wg_zmax
+   ) # the bent waveguide geometry is for the actual run
+   src_vol = mp.GDSII_vol(filename, SRC_LAYER, wg_zmin, wg_zmax)
+   straight_out_vol = mp.GDSII_vol(filename, TRAN_MON_LAYER_STRAIGHT_WG, wg_zmin, wg_zmax)
+   bent_out_vol = mp.GDSII_vol(filename, TRAN_MON_LAYER_BENT_WG, wg_zmin, wg_zmax)
+   in_vol = mp.GDSII_vol(filename, REFL_MON_LAYER, wg_zmin, wg_zmax)
+   straight_wg_end_pt = straight_out_vol.center
+   bent_wg_end_pt = bent_out_vol.center
+
+   # Define the objects for the simulation
+   sources = [
+      mp.Source(mp.GaussianSource(fcen, fwidth=df), component=mp.Ez, volume=src_vol)
+   ]
+   straight_geometry = straight_wg
+   bent_geometry = bent_wg
+   pml_layers = [mp.PML(pml_w)]
+
+   # Create the simulation objects
+   normalization_sim = mp.Simulation(
+      cell_size=sim_cell.size,
+      boundary_layers=pml_layers,
+      geometry=straight_geometry,
+      sources=sources,
+      resolution=resolution,
+   )
+
+   actual_sim = mp.Simulation(
+      cell_size=sim_cell.size,
+      boundary_layers=pml_layers,
+      geometry=bent_geometry,
+      sources=sources,
+      resolution=resolution,
+   )
+
+We have now the geometry and the source defined. This would be enough if we wanted to do similar simulation to the first one. However, we want to have more quantitative information now for estimating the losses in the bend. For this purpose, we need to introduce flux monitors monitoring the through going flux around the central frequency to the simulation. For both the normalization simulation and the actual simulation, we add flux monitors for reflecting and transmitted field. 
+
+.. code-block:: python
+   straight_refl = normalization_sim.add_flux(fcen, df, nfreq, mp.FluxRegion(volume=in_vol))
+   straight_tran = normalization_sim.add_flux(fcen, df, nfreq, mp.FluxRegion(volume=straight_out_vol))
+
+   bend_refl = actual_sim.add_flux(fcen, df, nfreq, mp.FluxRegion(volume=in_vol))
+   bend_tran = actual_sim.add_flux(fcen, df, nfreq, mp.FluxRegion(volume=bent_out_vol))
+
+Now we can confirm if we indeed have imported the waveguide geometry and the source and the monitors properly to the both simulations. For a quick check, we use the built-in command ``plot2D()``. We should see the waveguide geometry as the black region, the source as the red line, the flux monitors as the blue lines, and the perfectly matched layer as the hatched green regions along the edges of the computational domain.
+
+.. code-block:: python
+   normalization_sim.plot2D()
+   plt.show()
+   actual_sim.plot2D()
+
+.. image:: waveguide_figures/7_straight_waveguide_sim.png
+    :width: 50 %
+.. image:: waveguide_figures/8_bent_waveguide_sim.png
+    :width: 50 %
 
 
 
