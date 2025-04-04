@@ -697,16 +697,25 @@ For the locations and sizes of the simulation cell, source and flux monitors, we
    # Read volumes for cell, geometry, source region 
    # and flux monitors from the GDSII file
    sim_cell = mp.GDSII_vol(filename, SIM_CELL_LAYER, cell_zmin, cell_zmax)
+
+   # the straight waveguide is needed for the normalization run
    straight_wg = mp.get_GDSII_prisms(
       wg_material, filename, WG_LAYER_STRAIGHT_WG, wg_zmin, wg_zmax
-   ) # the straight waveguide is needed for the normalization run
+   ) 
+
+   # the bent waveguide geometry is for the actual run
    bent_wg = mp.get_GDSII_prisms(
       wg_material, filename, WG_LAYER_BENT_WG, wg_zmin, wg_zmax
-   ) # the bent waveguide geometry is for the actual run
+   ) 
+
    src_vol = mp.GDSII_vol(filename, SRC_LAYER, wg_zmin, wg_zmax)
+
    straight_out_vol = mp.GDSII_vol(filename, TRAN_MON_LAYER_STRAIGHT_WG, wg_zmin, wg_zmax)
+
    bent_out_vol = mp.GDSII_vol(filename, TRAN_MON_LAYER_BENT_WG, wg_zmin, wg_zmax)
+
    in_vol = mp.GDSII_vol(filename, REFL_MON_LAYER, wg_zmin, wg_zmax)
+
    straight_wg_end_pt = straight_out_vol.center
    bent_wg_end_pt = bent_out_vol.center
 
@@ -756,9 +765,90 @@ Now we can confirm if we indeed have imported the waveguide geometry and the sou
 |pic1| |pic2|
 
 .. |pic1| image:: waveguide_figures/7_straight_waveguide_sim.png
-   :width: 50%
+   :width: 45%
 
 .. |pic2| image:: waveguide_figures/8_bent_waveguide_sim.png
-   :width: 50%
+   :width: 45%
+
+Running the simulation
+----------------------
+Next we need to define how long we want to simulate our structure. The time can be hard to predict, so we will use a workaround. In Meep, it is possible to specify that we want to run the simulation until the intensity has decayed by a certain amount at a specified point. For that, we need to specify the number by which we want the field to be decayed. To ensure that we do not stop the simulation before the field has actually vanished, we also specify a duration for which the simulation keeps running after the intensity has decayed by the given number. 
+
+.. code-block:: python
+
+   decay_by = 1e-3
+   t_after_decay = 50
+
+Now we can run the normalization run. After the run, we want to save the data from the location that is before the bend in the actual simulation for calculating the reflected flux. We also save the incident power with which we can normalize the data gathered from the actual simulation. 
+
+.. code-block:: python
+
+   # Normalization run
+   normalization_sim.run(until_after_sources=mp.stop_when_fields_decayed(t_after_decay, mp.Ez, straight_wg_end_pt, decay_by))
+
+   # save the field data for calculating the reflection later
+   straight_refl_data = normalization_sim.get_flux_data(straight_refl)
+
+   # incident power
+   straight_tran_flux = mp.get_fluxes(straight_tran)
+
+Before we can run the actual simulation, we need to tell the ``FluxRegion`` responsible for monitoring the reflected field about the field which is propagating forwards so that Meep can use that information to cancel the incident field in the Fourier calculations. 
+
+Let us now run the actual simulation. After the simulation, we save the reflected and transmitted powers along with the frequencies at which the flux was calculated. 
+
+.. code-block:: python
+   
+   # information about the field propagating forwards
+   actual_sim.load_minus_flux_data(bend_refl, straight_refl_data)
+
+   # Actual run
+   actual_sim.run(until_after_sources=mp.stop_when_fields_decayed(t_after_decay, mp.Ez, bent_wg_end_pt, decay_by))
+
+   # save the reflected flux
+   bend_refl_flux = mp.get_fluxes(bend_refl)
+
+   # save the transmitted flux
+   bend_tran_flux = mp.get_fluxes(bend_tran)
+
+   # save the frequencies
+   flux_freqs = mp.get_flux_freqs(bend_tran)
+
+All the necessary results are now gathered and we may present the results in a figure. 
+
+.. code-block:: python
+
+   wl = []
+   Rs = []
+   Ts = []
+   for i in range(nfreq):
+      wl = np.append(wl, 1 / flux_freqs[i])
+      Rs = np.append(Rs, -bend_refl_flux[i] / straight_tran_flux[i])
+      Ts = np.append(Ts, -bend_tran_flux[i] / straight_tran_flux[i])
+      
+   Ls = 1 - Rs - Ts
+
+   fig = plt.figure(figsize=(4,3.25))
+   ax = fig.add_subplot(111)
+   colors = ["#CC6666", "#9999CC", "#66CC99"]
+
+   # main plot
+   ax.plot(wl, 100*Ts, color=colors[0], label="Transmittance")
+   ax.plot(wl, 100*Ls, color=colors[1], label="Loss")
+   ax.plot(wl, 100*Rs, color=colors[2], label="Reflectance")
+
+   ax.set_ylim(bottom=0, top=100)
+   ax.set_xlabel("Wavelength (μm)")
+   ax.set_ylabel("Transmittance, Loss, \nand Reflectance (%)")
+   ax.set_title("")
+   ax.legend(loc=0)
+
+   plt.savefig("one_wg_TRL.pdf")
+   plt.savefig("one_wg_TRL.png", dpi=300)
+   plt.show()
+
+.. figure:: waveguide_figures/9_results_one_br.png
+   :alt: Results for a single bend radius. 
+   :width: 60%
+   :align: center
 
 .. [1] K. Luke, Y. Okawachi, M. R. E. Lamont, A. L. Gaeta, M. Lipson. Broadband mid-infrared frequency comb generation in a Si3N4 microresonator. Opt. Lett. 40, 4823-4826 (2015)
