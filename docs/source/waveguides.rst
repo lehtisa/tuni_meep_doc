@@ -395,7 +395,7 @@ Now we have a nice animation! Note that we can observe here how to source turns 
 
 Demo 2: Dielectric Waveguguides with a Circular Bend
 ============
-Now, we will make a numerical experiment to investigate how big transmission losses might happen when the field propagates through a waveguide which has a circular bend, i.e. a bend with a constant bend radius of curvature. In this demo, we do this investigation for one bent waveguide, after which we extend our discussion for waveguides with bends that have different radii of curvature. 
+Now, we will make a numerical experiment to investigate how big transmission losses might happen when the field propagates through a waveguide which has a circular bend, i.e. a bend with a constant bend radius of curvature. In this demo, we do this investigation for one bent waveguide, after which we extend our discussion for waveguides with bends that have different radii of curvature. You should note that this demo is somewhat more advanced than the first one. 
 
 In this demo, we will consider the following matters of simulation:
 
@@ -448,6 +448,7 @@ Naturally, we start by importing important libraries we need here. Note that ``g
 First thing is to define where we want to generate our GDSII files. We specify this in a (constant) variable called ``GDS_DIR``. Make sure to create this directory in the same directory where you are running the Python file. We also name the layers by integers so we can keep track which items are on which layer.
 
 .. code-block:: python
+
    GDS_DIR = "./gds_files/"
 
    SIM_CELL_LAYER = 1                  # simulation cell
@@ -463,6 +464,7 @@ First thing is to define where we want to generate our GDSII files. We specify t
 Next, we define functions where we generate each stucture in the simulation cell. First, we define the waveguide with the circular bend. 
 
 .. code-block:: python
+
    def circular_bend(cell, x0, wg_w, br, l1, l2, layer):
       """
       Args:
@@ -522,6 +524,7 @@ We create also the following functions:
 - ``sim_cell``: This is a rectangle which speficies the size and the location of the simulation cell.
 
 .. code-block:: python
+
    def source_regions(cell, x0, wg_w, l1, layer, offset=4):
       path = gdspy.FlexPath(
          [(x0[0] + offset - wg_w, x0[1] + 1 * wg_w), 
@@ -597,6 +600,7 @@ We create also the following functions:
 Let us define the waveguide to be 0.5 µm wide and choose the straight sections to be for example 20 µm and 10 µm long. Here we use the bend radius of 0.5 µm. We also define the filename. 
 
 .. code-block:: python
+
    wg_w = 0.5      # waveguide width
    br = 0.5        # bend radius 
    l1 = 20         # length of the first straight section
@@ -608,6 +612,7 @@ Let us define the waveguide to be 0.5 µm wide and choose the straight sections 
 Now, to generate the shapes, we need to create a gds library and add a cell to it. Then to this cell, we can add the desired waveguide shape and monitors, simulation cell etc. 
 
 .. code-block:: python
+
    # The GDSII file is called a library, which contains multiple cells.
    lib = gdspy.GdsLibrary()
    # Geometry must be placed in cells.
@@ -616,6 +621,7 @@ Now, to generate the shapes, we need to create a gds library and add a cell to i
 For the import to work properly in Meep, it is a good idea (you'll thank yourself later) to center the geometry such that the center of the simulation cell is in the origin in the GDSII coordinate system. With our convenient functions, it is now very straightforward to build the desired waveguide shape. Lastly, we need to save the gds library with the cell containing all the objects we have created in a GDSII file. 
 
 .. code-block:: python
+
    # x0 is such that the structure is centered at the origin
    x0 = ((-l1 - br - tol) / 2, (l2 + br - tol) / 2)
 
@@ -653,6 +659,7 @@ We have now defined the 2D geometry of our simulation in the GDSII files. Before
    Also note here that the height of the waveguide should not matter in this simulation. 
 
 .. code-block:: python
+
    # Define simulation parameters
    cell_zmin = 0      # simulation cell zmin
    cell_zmax = 0      # simulation cell zmax
@@ -669,9 +676,10 @@ We have now defined the 2D geometry of our simulation in the GDSII files. Before
 .. note::
    Here we are convinced that with the resolution of 20, the simulation is converged. However, in your own simulations, you should remember to check the convergence. 
 
-We can now set the wavelength area of the interest here. This time we will use a Gaussian source with a central frequency ``fcen`` and some width in frequency ``df``. Meep monitors the fluxes only on frequency range :math:`[f_\mathrm{cen}-\frac{\mathrm{d}f}{2},f_\mathrm{cen}+\frac{\mathrm{d}f}{2}]` in order to avoid numerical errors which could occur due to too small intensity. In the code, we specify the desired wavelength range and then calculate these parameters. We also set the parameter ``nfreq``which defines the number of different frequencies Meep uses when monitoring. 
+We can now set the wavelength area of the interest here. This time we will use a Gaussian source with a central frequency ``fcen`` and some width in frequency ``df``. Meep monitors the fluxes only on frequency range :math:`[f_\mathrm{cen}-\frac{\mathrm{d}f}{2},f_\mathrm{cen}+\frac{\mathrm{d}f}{2}]` in order to avoid numerical errors which could occur due to too small intensity. In the code, we specify the desired wavelength range and then calculate these parameters. We also set the parameter ``nfreq`` which defines the number of different frequencies Meep uses when monitoring. 
 
 .. code-block:: python
+
    # wavelength range
    wl_begin = 1
    wl_end = 10
@@ -685,6 +693,7 @@ We can now proceed with importing the shapes from the file to Meep. For the shap
 For the locations and sizes of the simulation cell, source and flux monitors, we use the command ``mp.GDSII_vol``. Later when we specify, as is customary, the sources object, we specify volume instead of center and size as we did in the first demo.  
 
 .. code-block:: python
+
    # Read volumes for cell, geometry, source region 
    # and flux monitors from the GDSII file
    sim_cell = mp.GDSII_vol(filename, SIM_CELL_LAYER, cell_zmin, cell_zmax)
@@ -729,6 +738,7 @@ For the locations and sizes of the simulation cell, source and flux monitors, we
 We have now the geometry and the source defined. This would be enough if we wanted to do similar simulation to the first one. However, we want to have more quantitative information now for estimating the losses in the bend. For this purpose, we need to introduce flux monitors monitoring the through going flux around the central frequency to the simulation. For both the normalization simulation and the actual simulation, we add flux monitors for reflecting and transmitted field. 
 
 .. code-block:: python
+
    straight_refl = normalization_sim.add_flux(fcen, df, nfreq, mp.FluxRegion(volume=in_vol))
    straight_tran = normalization_sim.add_flux(fcen, df, nfreq, mp.FluxRegion(volume=straight_out_vol))
 
@@ -738,15 +748,17 @@ We have now the geometry and the source defined. This would be enough if we want
 Now we can confirm if we indeed have imported the waveguide geometry and the source and the monitors properly to the both simulations. For a quick check, we use the built-in command ``plot2D()``. We should see the waveguide geometry as the black region, the source as the red line, the flux monitors as the blue lines, and the perfectly matched layer as the hatched green regions along the edges of the computational domain.
 
 .. code-block:: python
+
    normalization_sim.plot2D()
    plt.show()
    actual_sim.plot2D()
 
-.. image:: waveguide_figures/7_straight_waveguide_sim.png
-    :width: 50 %
-.. image:: waveguide_figures/8_bent_waveguide_sim.png
-    :width: 50 %
+|pic1| |pic2|
 
+.. |pic1| image:: waveguide_figures/7_straight_waveguide_sim.png
+   :width: 50%
 
+.. |pic2| image:: waveguide_figures/8_bent_waveguide_sim.png
+   :width: 50%
 
 .. [1] K. Luke, Y. Okawachi, M. R. E. Lamont, A. L. Gaeta, M. Lipson. Broadband mid-infrared frequency comb generation in a Si3N4 microresonator. Opt. Lett. 40, 4823-4826 (2015)
