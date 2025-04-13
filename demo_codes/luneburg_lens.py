@@ -37,10 +37,8 @@ eps_data = sim.get_array(center=mp.Vector3(), size=cell, component=mp.Dielectric
 ez_data = sim.get_array(center=mp.Vector3(), size=cell, component=mp.Ez)
 norm = TwoSlopeNorm(vmin=-ez_data.max(), vcenter=0, vmax=ez_data.max())
 plt.figure()
-plt.imshow(eps_data.transpose(), interpolation="spline36", cmap="binary")
-plt.imshow(ez_data.transpose(), interpolation="spline36", cmap="RdBu", norm=norm, alpha=0.6)
-plt.xticks(np.linspace(0,eps_data.shape[0],9),np.linspace(-sx/2,sx/2,9))
-plt.yticks(np.linspace(0,eps_data.shape[1],5),np.linspace(-sy/2,sy/2,5))
+plt.imshow(eps_data.transpose(), interpolation="spline36", cmap="binary", extent=[-sx/2,sx/2,-sy/2,sy/2])
+plt.imshow(ez_data.transpose(), interpolation="spline36", cmap="RdBu", norm=norm, alpha=0.6, extent=[-sx/2,sx/2,-sy/2,sy/2])
 plt.savefig("luneburg_end_field.png", bbox_inches='tight')
 plt.show()
 
