@@ -68,7 +68,7 @@ Then we create the simulation object with all the cell, PML layers, geometry, an
                         force_complex_fields=True)
 
 
-Now we run the simulation until 75. This time is long enough because then the wave has reached the right side of the cell and we do not observe change. We can use plot2D to easily see the geometry of the simulation. We can plot the electric field at the end of the simulation by using get_array. Now we have to notice that we are using complex fields so to be able to plot them we take absolute values of the field data. To get the imshow to show the plot not upside down, we define origin="lower". The ticks are defined manually because imshow otherwise shows the number of pixels on the axis.
+Now we run the simulation until 75. This time is long enough because then the wave has reached the right side of the cell and we do not observe change. We can use plot2D to easily see the geometry of the simulation. We can plot the electric field at the end of the simulation by using get_array. Now we have to notice that we are using complex fields so to be able to plot them we take real part of the field data. To get the imshow to show the plot not upside down, we define origin="lower". The axis for imshow can be defined using extent parameter.
 
 .. code-block :: python
 
