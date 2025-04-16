@@ -185,7 +185,7 @@ simulation cell.
 Intensity distribution
 =======================
 
-Let us next observe how the simulated intensity distribution converges on a result when resolution of the simulation is doubled. Let us also use this demo to compare the simulated intensity distribution to a theoretical approximation.
+Let us next observe how the simulated intensity distribution converges on a result when resolution of the simulation is doubled and how the intensity distribution develops as the field propagates. Let us also use this demo to compare the simulated intensity distribution to a theoretical approximation.
 The theoretical equation we will be using is based on the Fraunhofer diffraction equation, which is used to model plane waves diffracting off incident objects.
 Fraunhofer diffraction also requires the diffraction pattern to be viewed at a sufficiently long distance away from the object. This is
 described by the Fraunhofer condition, which can be written as
@@ -209,7 +209,7 @@ The equation for the theoretical intensity distribution is
 where :math:`g` is the distance between the centers of the slits, :math:`a` is the size of the slit and :math:`\theta` is the
 angle of direction away from the double slit.
 
-Let us now move to simulating the intensity distribution. The cell size, simulation geometry and current source will remain the same, but the simulation will be ran multiple times at different resolutions. We will also be enabling the calculation of complex field components in the simulation definition to let us extract intensity directly from the field data. We will be extracting arrays of field data at multiple distances away from the double-slit to see how the simulated intensity distribution developes as it propagates. Adding complex components will approximately double the simulation time. We will also be running the simulation at doubling resolutions from 10 to 80. At a resolution as high as 80, running the simulation will take approximately an hour, depending heavily on the specs of you computer. 
+Let us now move to simulating the intensity distribution. The cell size, simulation geometry and current source will remain the same, but the simulation will be ran multiple times at different resolutions. We will also be enabling the calculation of complex field components in the simulation definition to let us extract intensity directly from the field data. We will be extracting arrays of field data at multiple distances away from the double-slit to see how the simulated intensity distribution developes as it propagates. Adding complex components will approximately double the simulation time. We will also be running the simulation at doubling resolutions from 10 to 80. At a resolution as high as 80, running the simulation will take approximately an hour, depending heavily on the hardware of your computer. 
 
 Now let us begin showing the changes to the code. Let us add the Matplotlib library as is for plot colormaps.
 
@@ -217,16 +217,32 @@ Now let us begin showing the changes to the code. Let us add the Matplotlib libr
 
     import meep as mp
     import numpy as np
+    import matplotlib as mpl
     import matplotlib.pyplot as plt
+
+Let us also add some code to adjust the font sizes of final figure.
+
+.. code-block:: python
+
+    # Adjusting font sizes of figure
+    plt.rcParams.update({
+        "font.size": 12,
+        "axes.titlesize": 14,
+        "axes.labelsize": 12,
+        "xtick.labelsize": 11,
+        "ytick.labelsize": 11,
+        "legend.fontsize": 11
+    })
 
 Now we can define cell dimensions, PML-layers, geometry and the current source exactly like we did in the first demo.
 
 .. code-block:: python
-
+    # Defining simulation cell dimensions
     width = 40
     height = 20
     cell = mp.Vector3(width, height, 0)
 
+    # Defining PML layer thickness
     dpml = 1
     pml_layers = [mp.PML(dpml)]
 
@@ -273,39 +289,40 @@ Now we can define cell dimensions, PML-layers, geometry and the current source e
         )
     ]
 
-We will want to make a new plot for each distance L away from the double-slit that we want to observe. Let us choose three distances at 15, 25 and 35 µm away. Let us define the figures and axis for the three plots. Let us also add in the colormap to be used later.
+We will be saving the intensity distribution at different distances away from the double-slit at the maximum resolution, saving the max distance distribution at different resolutions and imaging the propagated field. All these plots will be shown in one subplot. Let us choose three distances at 15, 25 and 35 µm away from the double-slit. Let us define the axis for the three plots. Let us also add in the colormap to be used later.
 
 .. code-block:: python
 
-    # Figure and axis containers
-    figs = []
-    axs = []
+    # Figure and axis containers for a specific subplot layout
+    fig = plt.figure(figsize=(9, 6), dpi=300)
+    gs = fig.add_gridspec(2, 2, height_ratios=[1, 1.2], hspace=0.3)
+    ax1 = fig.add_subplot(gs[0, :]) # Propagated field plot
+    ax2 = fig.add_subplot(gs[1, 0]) # Distance plot
+    ax3 = fig.add_subplot(gs[1, 1]) # Resolution convergence plot
 
-    # Defining three separate figures and their axis
-    for p in range(0,3):
-        figs.append(plt.figure(dpi=300))
-        axs.append(figs[p].add_subplot(1, 1, 1))
-
+    # Colormap for plots
     cmap = mpl.colormaps['copper']
 
-Now let us define the maximum distance from double-slit to observation plane, which will be 35 µm and the maximum angle away from the direction of the plane wave that we will observe at every distance.
+Now let us define the maximum distance from the double-slit to the observation plane, which will be 35 µm, and the maximum angle away from the direction of the plane wave that we will observe at every distance.
 
 .. code-block:: python
 
+    # Calculating distance from slit to PML-layer and maximum angle range to check
     slits_to_dpml = (width/2 - dpml) - wall_xpos
     theta_max = np.arctan((height/2 - dpml)/slits_to_dpml)
 
-Now we will start the for-loop for running the simulation at different resolutions. All comments will be in the code since we want to include the whole for-loop structure in one code block.
+Now we will start the for-loop for running the simulation at different resolutions. It will contain an inner for-loop to extract and plot intensity distribution at different distances at maximum resolution. All comments will be in the code since we want to include the whole for-loop structure in one coherent code block.
 
 .. code-block:: python
 
+    # Looping over different resolutions for convergence testing
     for k in range(0,4):
 
-        # Resolution of the simulation doubles each loop
+        # Resolution of the simulation
         resolution = 10*(2**k)
 
-        # Plot color for current resolution off colormap
-        plt_color = cmap((3-k)/3)
+        # Color mapping for resolution convergence plot
+        plt_color_res = cmap((3-k)/3)
 
         # Define simulation
         sim = mp.Simulation(
@@ -314,85 +331,119 @@ Now we will start the for-loop for running the simulation at different resolutio
             geometry=geometry,
             sources=sources,
             resolution=resolution,
-            force_complex_fields=True, # Turn on calculation of complex fields
+            force_complex_fields=True,
         )
 
-        # Running the simulation for enough time for field to propagate to end
+        # Running simulation, time based on propagation speed of light in the cell
         sim.run(until=width+5)
-
-        # Extracting field data and calculating intensity data from it
+        
+        # Saving field data
         ez_data = sim.get_array(center=mp.Vector3(), size=cell, component=mp.Ez)
         intensity_field = np.abs(ez_data)**2
-        
-        # For-loop to extract and calculate intensity distributions at different distances for current resolution
         Ls = []
-        for i in range(0,3):
-            L = slits_to_dpml - i*10
-            Ls.append(L)
 
-            # Taking 1D array of intensity values at some distance from double-slit
-            intensity_slice = intensity_field[(width - dpml - i*10) * resolution]
+        # Extracting intensity distributions at different distances with max resolution
+        if k == 3:
 
-            # Extracting the correct cell data points from the array for the angle area we want to observe
-            if i == 0:
-                intensity_slice_no_dpml = intensity_slice[dpml*resolution-1:-dpml*resolution+1]
-            else:
-                y_max = np.tan(theta_max)*L
-                y_dif = int(height/2 - y_max)
-                intensity_slice_no_dpml = intensity_slice[y_dif*resolution-1:-y_dif*resolution+1]
+            # Dielectric data for plotting propagated field
+            eps_data = sim.get_array(center=mp.Vector3(), size=cell, component=mp.Dielectric)
+            
+            # Creating field plot
+            ax1.imshow(eps_data.transpose(), extent = [0, width, 0, height], interpolation="spline36", cmap="binary")
+            ax1.imshow(np.real(ez_data).transpose(), extent = [0, width, 0, height], interpolation="spline36", cmap="RdBu", alpha=0.9)
+            ax1.set_xlabel(r"$x$ (µm)")
+            ax1.set_ylabel(r"$y$ (µm)")
+            ax1.set_title("(a)")
 
-            # Normalizing the intensity values
-            i_max = max(intensity_slice_no_dpml)
-            intensity_norm = [x/i_max for x in intensity_slice_no_dpml]
+            # Looping over 3 different distances from slits
+            for i in range(0,3):
+                # Color map for distance plot
+                plt_color_dist = cmap((2-i)/2)
 
-            # Calculating theta values for intensity values and plotting to correct figure
-            theta = np.linspace(-theta_max,theta_max,len(intensity_norm))
-            axs[i].plot([x / np.pi * 180 for x in theta], intensity_norm, color = plt_color, linewidth = 1.25, label=f"{resolution}")
-            if k == 0:
-                axs[i].set_title(f'L = {Ls[i]}')
+                # Calculating distance to check
+                L = slits_to_dpml - i*10
+                Ls.append(L)
 
-Next we will calculate the Fraunhofer diffraction based intensity distribution and add them to each distanced plot.
+                # Extracting 1D slice of intensity values along y-axis from set distance
+                intensity_slice = intensity_field[(width - dpml - i*10) * resolution]
+
+                # Cropping data vector to fit maximum angle range and remove PML layers
+                if i == 0:
+                    intensity_slice_cropped = intensity_slice[dpml*resolution-1:-dpml*resolution+1]
+                    # Calculating y value for each data point for later angle calculation
+                    y_vector = np.linspace(-height/2 + dpml, height/2 - dpml,len(intensity_slice_cropped))
+                else:
+                    y_max = np.tan(theta_max)*L
+                    y_dif = int(height/2 - y_max)
+                    intensity_slice_cropped = intensity_slice[y_dif*resolution-1:-y_dif*resolution+1]
+                    y_vector = np.linspace(-y_max,y_max,len(intensity_slice_cropped))
+
+                # Normalizing intensity data
+                i_max = max(intensity_slice_cropped)
+                intensity_norm = [x/i_max for x in intensity_slice_cropped]
+
+                # Calculating theta values
+                theta = [np.arctan(y/L) for y in y_vector]
+
+                # Adding data relevant subplots
+                if i == 0:
+                    ax3.plot(np.rad2deg(theta), intensity_norm, color = plt_color_res, linewidth = 1.25, label=f"{resolution}")
+                ax2.plot(np.rad2deg(theta), intensity_norm, color = plt_color_dist, linewidth = 1.25, label=f"{Ls[i]} µm")
+
+        # Same data extraction process for lower than max resolutions with max L distance
+        else:
+            intensity_slice = intensity_field[(width - dpml) * resolution]
+            intensity_slice_cropped = intensity_slice[dpml*resolution-1:-dpml*resolution+1]
+            y_vector = np.linspace(-height/2 + dpml, height/2 - dpml,len(intensity_slice_cropped))
+            i_max = max(intensity_slice_cropped)
+            intensity_norm = [x/i_max for x in intensity_slice_cropped]
+            theta = [np.arctan(y/slits_to_dpml) for y in y_vector]
+            ax3.plot(np.rad2deg(theta), intensity_norm, color = plt_color_res, linewidth = 1.25, label=f"{resolution}")
+
+Next we will calculate the Fraunhofer diffraction based intensity distribution and add them to both the convergence and distance intensity distribution plots.
 
 .. code-block:: python
 
-    # Calculating Fraunhofer diffraction intensity distribution
+    # Calculating Fraunhofer intensity distribution
     theta2 = np.linspace(-theta_max,theta_max,1000)
     alpha = np.pi * gap * np.sin(theta2) / wavelength
     beta = np.pi * aperture * np.sin(theta2) / wavelength
     i_theory = ((np.sin(beta)/beta) ** 2) * (np.cos(alpha) ** 2)
 
-    # Adding Fraunhofer values to each distance figure and saving the figures
-    for i in range(0,3):
-        axs[i].plot(theta2 / np.pi * 180, i_theory, color=(0.7,0.7,0.7,0.65), linewidth = 1.5, ls = '--', label="Fraunhofer diffraction")
+    # Adding theoretical distribution and text to plots
+    axs = [ax2, ax3]
+    titles = ["(b)", "(c)"]
+
+    for i in range(2):
+        axs[i].plot(np.rad2deg(theta2), i_theory, color=(0.7, 0.7, 0.7, 0.65),
+                    linewidth=1.5, ls='--', label="Fraunhofer")
         axs[i].set_xlabel("Angle (Degrees)")
-        axs[i].legend(loc="upper right")
-        figs[i].savefig(f'dist{Ls[i]}.png')
+        if i == 0:
+            axs[i].set_ylabel("Normalized Intensity")
+        axs[i].set_title(titles[i])
 
-This results in the following three figures
+Lastly we include some code to adjust the subplots and their legends and save the figure as an image file.
 
-The intensity distribution at L = 15.0 µm
+.. code-block:: python
 
-.. figure:: double_slit_figures/dist15.0.png
+    # Adjusting legends
+    ax2.legend(loc='lower left',bbox_to_anchor=(-0.2, 1.0),title="L=")
+    ax3.legend(loc='lower right',bbox_to_anchor=(1.1, 1.0),title="Resolution:")
+
+    # Saving figure
+    fig.tight_layout()
+    fig.subplots_adjust(top=0.92)
+    fig.savefig("full_subplot.png", bbox_inches='tight')
+    
+This code will produce the following figure.
+
+.. figure:: double_slit_figures/full_subplot.png
    :alt: test text
    :width: 90%
    :align: center
 
-The intensity distribution at L = 25.0 µm
-
-.. figure:: double_slit_figures/dist25.0.png
-   :alt: test text
-   :width: 90%
-   :align: center
-
-The intensity distribution at L = 35.0 µm
-
-.. figure:: double_slit_figures/dist35.0.png
-   :alt: test text
-   :width: 90%
-   :align: center
-
-From these figures we can observe that the simulated distribution converges well with resolution doubling, with resolutions 40 and 80 being almost perfectly identical. We can also observe that the intensity distribution over angles is more dispersed at lower resolutions.
-For the different distances we can observe the secondary and tertiary intensity peaks dropping as we move away from the double-slit. Dropping even lower than the Fraunhofer diffraction based distribution, which is meant to give best results at much larger distance. We are currently unsure of the cause for this but it may have something to do with a point source intensity being correlated to travel distance by :math:`\frac{1}{r^2}` while we are taking measurements at a flat plane, where distance to the measurement plane is higher at higher angles. 
+From these plots we can observe that the simulated distribution converges well with resolution doubling, with resolutions 40 and 80 being almost perfectly identical. We can also observe that the intensity distribution over angles is more dispersed at lower resolutions.
+For the different distances we can observe the secondary and tertiary intensity peaks dropping as we move away from the double-slit. Dropping even lower than the Fraunhofer diffraction based distribution, which is meant to give best results at much larger distance. We are currently unsure of the cause for this but it may have something to do with a point source intensity being correlated to travel distance by :math:`\frac{1}{r^2}` while we are taking measurements at a flat plane, where distance to the measurement plane is higher at higher angles. It may also be related to the way in which we extract intensity information. We extract the average field information of a singular simulation cell, the size of which is constant at all distances. As the field propagates the intensity spreads over a larger area, meaning a singular cell contains less intensity at longer distances.
 
 
  
