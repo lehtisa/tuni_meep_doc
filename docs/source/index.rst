@@ -23,3 +23,9 @@ Contents
    reflection_and_refraction
    nonlinear_phenomena
    applied_demo
+
+
+Authors
+-------
+
+**Original documentation** created by Santeri Lehtinen, Teemu Koivisto, Elmeri Grahn, Mikko Roivainen, Eero Prusti and Veikka Hyvönen at Tampere University
