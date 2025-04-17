@@ -1061,7 +1061,7 @@ Now, let us define the simulation function which takes care of creating the nece
       # Read volumes for cell, geometry, source region 
       # and flux monitors from the GDSII file
       sim_cell = mp.GDSII_vol(filename, SIM_CELL_LAYER, cell_zmin, cell_zmax)
-      
+
       straight_wg = mp.get_GDSII_prisms(
          wg_material, filename, WG_LAYER_STRAIGHT_WG, wg_zmin, wg_zmax
       ) # the straight waveguide is needed for the normalization run
@@ -1434,7 +1434,7 @@ Now that we have our results, we can plot them to see what is going on. Let us c
 
 
 
-.. figure:: waveguide_figures/1_results_radii_wl.png
+.. figure:: waveguide_figures/10_results_radii_wl.png
    :alt: Results for multiple wavelengths and bend radii. 
    :width: 110%
    :align: center
