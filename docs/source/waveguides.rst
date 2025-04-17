@@ -1061,16 +1061,23 @@ Now, let us define the simulation function which takes care of creating the nece
       # Read volumes for cell, geometry, source region 
       # and flux monitors from the GDSII file
       sim_cell = mp.GDSII_vol(filename, SIM_CELL_LAYER, cell_zmin, cell_zmax)
+      
       straight_wg = mp.get_GDSII_prisms(
          wg_material, filename, WG_LAYER_STRAIGHT_WG, wg_zmin, wg_zmax
       ) # the straight waveguide is needed for the normalization run
+
       bent_wg = mp.get_GDSII_prisms(
          wg_material, filename, WG_LAYER_BENT_WG, wg_zmin, wg_zmax
       ) # the bent waveguide geometry is for the actual run
+
       src_vol = mp.GDSII_vol(filename, SRC_LAYER, wg_zmin, wg_zmax)
+
       straight_out_vol = mp.GDSII_vol(filename, TRAN_MON_LAYER_STRAIGHT_WG, wg_zmin, wg_zmax)
+
       bent_out_vol = mp.GDSII_vol(filename, TRAN_MON_LAYER_BENT_WG, wg_zmin, wg_zmax)
+
       in_vol = mp.GDSII_vol(filename, REFL_MON_LAYER, wg_zmin, wg_zmax)
+
       straight_wg_end_pt = straight_out_vol.center
       bent_wg_end_pt = bent_out_vol.center
 
@@ -1427,7 +1434,7 @@ Now that we have our results, we can plot them to see what is going on. Let us c
 
 
 
-.. figure:: waveguide_figures/10_results_radii_wl.png
+.. figure:: waveguide_figures/1_results_radii_wl.png
    :alt: Results for multiple wavelengths and bend radii. 
    :width: 110%
    :align: center
@@ -1441,6 +1448,6 @@ We can also visualize the results using a heatmap. Here we want to include all w
    :width: 60%
    :align: center
 
-
+Perhaps the overall results are easier to see from the heatmap: the transmittance is better when the wavelength is shorter and when the bend radius is larger. These results agree with our intuition. 
 
 .. [1] K. Luke, Y. Okawachi, M. R. E. Lamont, A. L. Gaeta, M. Lipson. Broadband mid-infrared frequency comb generation in a Si3N4 microresonator. Opt. Lett. 40, 4823-4826 (2015)
