@@ -1429,7 +1429,7 @@ Now that we have our results, we can plot them to see what is going on. Let us c
 
 .. figure:: waveguide_figures/10_results_radii_wl.png
    :alt: Results for multiple wavelengths and bend radii. 
-   :width: 90%
+   :width: 110%
    :align: center
 
 Here we explore the results by plotting transmittance, loss, and reflectance with respect to bend radius in different wavelengths (figures a), b), and c)) and then plotting them with respect to wavelength in different bend radii (figures d), e), and f)). 
@@ -1438,7 +1438,7 @@ We can also visualize the results using a heatmap. Here we want to include all w
 
 .. figure:: waveguide_figures/11_heatmap_transmittance.png
    :alt: Results for multiple wavelengths and bend radii. 
-   :width: 90%
+   :width: 60%
    :align: center
 
 
