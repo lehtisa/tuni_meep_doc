@@ -1227,11 +1227,220 @@ Visualizing the results
 -----------------------
 Now that we have our results, we can plot them to see what is going on. Let us create a figure where we show the results.
 
-[code here]
+.. code-block:: python
 
-[figure here]
+   # interesting wavelengths
+   iwls = np.array([1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5])
+
+   # A helper function for finding the index of the value closest to the target
+   def clst_i_rng(arr, target):
+      if np.min(arr) <= target <= np.max(arr):  # range check
+         return np.abs(arr - target).argmin()
+      else:
+         return None
+
+   # A helper function to read the data from a file
+   def read_data(filename):
+      data = np.loadtxt(filename)
+      wls = data[:, 0]
+      Ts = data[:, 1]
+      Ls = data[:, 2]
+      Rs = data[:, 3]
+      
+      return wls, Ts, Ls, Rs
+
+   # Create empty arrays to store the data for each wavelength
+   iwl_datas = [np.empty((len(brs), 4)) for _ in iwls]
+
+   # Read the data for each bend radius (br)
+   for i, br in enumerate(brs):
+      filename = RESULT_DIR + f"{br}.txt"
+      wls, Ts, Ls, Rs = read_data(filename)
+      
+      # For each wavelength in iwls, find the closest index and store the corresponding values
+      for j, iwl in enumerate(iwls):
+         k = clst_i_rng(wls, iwl)
+         if k is not None:  # Only assign if k is valid
+               iwl_datas[j][i] = (wls[k], Ts[k], Ls[k], Rs[k])
+
+   # Prepare the figure for plotting
+   fig = plt.figure(figsize=(9,5))
+
+   # Colors for the wavelengths
+   n = len(iwls)
+   cmap = cm.get_cmap("copper")
+   colors = [cmap(i / (n)) for i in range(n)]
+
+   # Create subplots for each curve type
+   ax1 = fig.add_subplot(231)  # Transmittance
+   ax2 = fig.add_subplot(232)  # Loss
+   ax3 = fig.add_subplot(233)  # Reflectance
+
+   axes = [ax1, ax2, ax3] 
+
+   # Plot the Transmittance (T), Loss (L), and Reflectance (R) for each wavelength
+   for j, iwl in enumerate(iwls):
+      # Extract the data for the current wavelength
+      iwl_data = iwl_datas[j]
+      T_data = iwl_data[:, 1]
+      L_data = iwl_data[:, 2]
+      R_data = iwl_data[:, 3]
+
+      # Plot on each subplot
+      axes[0].plot(brs, 100*T_data, ".-", lw=2, color=colors[j], label=f"{iwl} µm")
+      axes[1].plot(brs, 100*L_data, ".-", lw=2, color=colors[j], label=f"{iwl} µm")
+      axes[2].plot(brs, 100*R_data, ".-", lw=2, color=colors[j], label=f"{iwl} µm")
+
+
+   # Add titles and labels
+   ax1.set_ylabel("Transmittance (%)")
+   ax1.set_title("a)")
+   ax1.set_ylim(0, 100)  # Ensure y-axis is 0-100
+   ax2.set_ylabel("Loss (%)")
+   ax2.set_title("b)")
+   ax2.set_ylim(0, 100)  # Ensure y-axis is 0-100
+   ax3.set_ylabel("Reflectance (%)")
+   ax3.set_title("c)")
+   ax3.set_ylim(0, 2.5)
+
+   ax3.axhline(y=3, color="gray", linestyle="dashed", linewidth=1)
+   ax3.text(2.5, 2.2, "Different y-scale", fontsize=10, color="gray", ha="right")
+
+   for ax in axes:
+      ax.set_xlabel("Bend radius (µm)")
+      ax.set_xlim([0.5, 3])
+      ax.set_xticks([0.5, 1, 1.5, 2, 2.5, 3])
+
+   # Create an inset axis for the colorbar
+   cbar_ax = ax3.inset_axes([1.1, 0.0, 0.05, 1])  # (x, y, width, height)
+
+   # Create a ScalarMappable for colorbar
+   bounds = np.linspace(iwls[0], iwls[-1], len(iwls) + 1)  # Color boundaries
+   norm = mcolors.BoundaryNorm(bounds, cmap.N)  # Use boundaries for discrete colormap
+   sm = cm.ScalarMappable(cmap=cmap, norm=norm)
+   sm.set_array([])  # Dummy data for colorbar
+
+   cbar = fig.colorbar(sm, cax=cbar_ax, ticks=iwls, orientation="vertical")
+   cbar.ax.yaxis.set_label_position("right") 
+   cbar.ax.set_ylabel("Wavelength (µm)", fontsize=10)
+   cbar.ax.tick_params(labelsize=8)
+
+
+   # Set ticks at midpoints to center them
+   cbar.ax.yaxis.set_ticks_position("none")
+   midpoints = (bounds[:-1] + bounds[1:]) / 2  # Middle points between boundaries
+   cbar.set_ticks(midpoints)
+   cbar.set_ticklabels([f"{w:.1f}" for w in iwls])  # Ensure labels are correctly mapped
+   cbar.ax.tick_params(labelsize=8, size=0)
+
+
+   # results with respect to wavelength
+
+   # get how many wavelengths
+   wls, _, _, _ = read_data(RESULT_DIR + f"{br}.txt")
+   nfreq = len(wls)
+
+   # Create empty arrays to store the data for each wavelength
+   br_datas = [np.empty((nfreq, 4)) for _ in brs]
+
+   # Read the data for each bend radius (br)
+   for i, br in enumerate(brs):
+      filename = RESULT_DIR + f"{br}.txt"
+      wls, Ts, Ls, Rs = read_data(filename)
+      br_datas[i] = (wls, Ts, Ls, Rs)
+      
+   # Colors for the wavelengths
+   n = len(brs)
+   cmap = cm.get_cmap("jet")
+   colors = [cmap(i / (n)) for i in range(n)]
+
+   # Create subplots for each curve type
+   ax4 = fig.add_subplot(234)  # Transmittance
+   ax5 = fig.add_subplot(235)  # Loss
+   ax6 = fig.add_subplot(236)  # Reflectance
+
+   axes = [ax4, ax5, ax6]
+
+   # Plot the Transmittance (T), Loss (L), and Reflectance (R) for each wavelength
+   for j, br in enumerate(brs):
+      # Extract the data for the current wavelength
+      br_data = br_datas[j]
+      wls = br_data[0]
+      T_data = br_data[1]
+      L_data = br_data[2]
+      R_data = br_data[3]
+
+      # Plot on each subplot
+      axes[0].plot(wls, 100*T_data, "-", lw=2, color=colors[j], label=f"{iwl} µm")
+      axes[1].plot(wls, 100*L_data, "-", lw=2, color=colors[j], label=f"{iwl} µm")
+      axes[2].plot(wls, 100*R_data, "-", lw=2, color=colors[j], label=f"{iwl} µm")
+      
+
+   # Add titles and labels
+   ax4.set_ylabel("Transmittance (%)")
+   ax4.set_title("d)")
+   ax4.set_ylim(0, 100)  # Ensure y-axis is 0-100
+   ax5.set_ylabel("Loss (%)")
+   ax5.set_title("e)")
+   ax5.set_ylim(0, 100)  # Ensure y-axis is 0-100
+   ax6.set_ylabel("Reflectance (%)")
+   ax6.set_title("f)")
+   ax6.set_ylim(0, 2.5)
+
+   ax6.text(3.5, 2.2, "Different y-scale", fontsize=10, color="gray", ha="right")
+
+   for ax in axes:
+      ax.set_xlabel("Wavelength (µm)")
+      ax.set_xticks([1, 2, 3, 4, 5])
+      ax.set_xlim([1, 5])
+
+   # Create an inset axis for the colorbar
+   cbar_ax = ax6.inset_axes([1.1, 0.0, 0.05, 1])  # (x, y, width, height)
+
+   # Create a ScalarMappable for colorbar
+   bounds = np.linspace(brs[0], brs[-1], len(brs) + 1)  # Color boundaries
+   norm = mcolors.BoundaryNorm(bounds, cmap.N)  # Use boundaries for discrete colormap
+   sm = cm.ScalarMappable(cmap=cmap, norm=norm)
+   sm.set_array([])  # Dummy data for colorbar
+
+   cbar = fig.colorbar(sm, cax=cbar_ax, ticks=brs, orientation="vertical")
+   cbar.ax.yaxis.set_label_position("right") 
+   cbar.ax.set_ylabel("Bend radius (µm)", fontsize=10, labelpad=-5)
+   cbar.ax.tick_params(labelsize=8)
+
+   # Set ticks at midpoints to center them
+   cbar.ax.yaxis.set_ticks_position("none")
+   midpoints = (bounds[:-1] + bounds[1:]) / 2  # Middle points between boundaries
+   cbar.set_ticks([midpoints[0], midpoints[-1]])
+   cbar.set_ticklabels([f"{brs[0]:.1f}", f"{brs[-1]:.1f}"])  # Ensure labels are correctly mapped
+   cbar.ax.tick_params(labelsize=8, size=0)
+
+   # Adjust layout to prevent overlap
+   plt.tight_layout()
+
+   # Save the figure
+   plt.savefig("Results.pdf")
+   plt.savefig("Results.png", dpi=300)
+
+   # Show the plot
+   plt.show()
+
+
+
+.. figure:: waveguide_figures/10_results_radii_wl.png
+   :alt: Results for multiple wavelengths and bend radii. 
+   :width: 90%
+   :align: center
 
 Here we explore the results by plotting transmittance, loss, and reflectance with respect to bend radius in different wavelengths (figures a), b), and c)) and then plotting them with respect to wavelength in different bend radii (figures d), e), and f)). 
+
+We can also visualize the results using a heatmap. Here we want to include all wavelengths which we used in the simulation, not just the few ones like in the figure above. The code is omitted here but it is available in GitHub. 
+
+.. figure:: waveguide_figures/11_heatmap_transmittance.png
+   :alt: Results for multiple wavelengths and bend radii. 
+   :width: 90%
+   :align: center
+
 
 
 .. [1] K. Luke, Y. Okawachi, M. R. E. Lamont, A. L. Gaeta, M. Lipson. Broadband mid-infrared frequency comb generation in a Si3N4 microresonator. Opt. Lett. 40, 4823-4826 (2015)
