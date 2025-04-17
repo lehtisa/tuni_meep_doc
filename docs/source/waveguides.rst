@@ -849,7 +849,7 @@ All the necessary results are now gathered and we may present the results in a f
 
 .. figure:: waveguide_figures/9_results_one_br.png
    :alt: Results for a single bend radius. 
-   :width: 90%
+   :width: 60%
    :align: center
 
 We can see that as the wavelength increases, the loss also increases. At longer wavelength, we start to see also some reflectance. 
