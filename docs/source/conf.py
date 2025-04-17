@@ -2,7 +2,7 @@
 
 # -- Project information
 
-project = "MEEP Quick Start Guide"
+project = "Meep Quick Start Guide"
 copyright = ""
 author = ""
 
