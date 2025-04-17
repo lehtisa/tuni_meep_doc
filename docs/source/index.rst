@@ -28,4 +28,6 @@ Contents
 Authors
 -------
 
-**Original documentation** created by Santeri Lehtinen, Teemu Koivisto, Elmeri Grahn, Mikko Roivainen, Eero Prusti and Veikka Hyvönen at Tampere University
+**Meep Quick Start Guide** created by Santeri Lehtinen, Teemu Koivisto, Elmeri Grahn, Mikko Roivainen, Eero Prusti and Veikka Hyvönen at Tampere University, 2024
+
+**Original documentation** created by *ab intio* research group at Massachusetts Institute of Technology, 2006
