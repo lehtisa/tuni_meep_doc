@@ -2,12 +2,12 @@
 
 # -- Project information
 
-project = "MEEP Quick Start Guide"
+project = "Meep Quick Start Guide"
 copyright = ""
 author = ""
 
 release = "0.1"
-version = "0.1.0"
+version = "1.0.0"
 
 # -- General configuration
 
