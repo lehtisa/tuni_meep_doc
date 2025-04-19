@@ -68,7 +68,7 @@ Then we create the simulation object with all the cell, PML layers, geometry, an
                         force_complex_fields=True)
 
 
-Now we run the simulation until 75. This time is long enough because then the wave has reached the right side of the cell and we do not observe change. We can use plot2D to easily see the geometry of the simulation. We can plot the electric field at the end of the simulation by using get_array. Now we have to notice that we are using complex fields so to be able to plot them we take real part of the field data. To get the imshow to show the plot not upside down, we define origin="lower". The axis for imshow can be defined using extent parameter.
+Now we run the simulation until 75. This time is long enough because then the wave has reached the right side of the cell and we do not observe change. We can use plot2D to easily see the geometry of the simulation. We can plot the electric field at the end of the simulation by using get_array. Now we have to notice that we are using complex fields so to be able to plot them we take the real part of the field data. To get the imshow to show the plot not upside down, we define origin="lower". The axis for imshow can be defined using extent parameter.
 
 .. code-block :: python
 
@@ -196,7 +196,7 @@ We place a dot source at the radius of the lens (the largest sphere we are going
 .. code-block :: python
 
     full_radius = 8
-    sources = [mp.Source(mp.ContinuousSource(frequency=1),
+    sources = [mp.Source(mp.ContinuousSource(frequency=0.5),
                         component=mp.Ez,
                         center=mp.Vector3(-full_radius,0))]
 
@@ -257,15 +257,15 @@ We can also make an animation of the simulation using Animate2D object and at_ev
     Animate = mp.Animate2D(fields=mp.Ez, f=f, realtime=False, normalize=True)
     plt.close()
 
-    sim.run(mp.at_every(1, Animate), until=70)
+    sim.run(mp.at_every(0.13, Animate), until=70)
     plt.close()
 
     filename = "./Luneburg_lens_animation.mp4"
-    Animate.to_mp4(10, filename)
+    Animate.to_mp4(30, filename)
 
 From the figure and the animation we can qualitatively see that after the luneburg lens the electric field has became collimated wave and the focal point of the lens lies at infinity.
 
-.. [1] Wikipedia Intensity available:https://en.wikipedia.org/wiki/Intensity_(physics) referenced 11.2.2025
-.. [2] Wikipedia Focal length available:https://en.wikipedia.org/wiki/Focal_length referenced 11.2.2025
-.. [3] Wikipedia Microlens available: https://en.wikipedia.org/wiki/Microlens referenced 3.4.2025
-.. [4] Wikipedia Luneburg Lens available:https://en.wikipedia.org/wiki/Luneburg_lens referenced 18.2.2025
+.. [1] RP Photonics, Optical Intensity, available: https://www.rp-photonics.com/optical_intensity.html referenced: 19.4.2025
+.. [2] RP Photonics, Lenses, available: https://www.rp-photonics.com/lenses.html referenced: 19.4.2025
+.. [3] RP Photonics, Microlenses, available: https://www.rp-photonics.com/microlenses.html referenced: 19.4.2025
+.. [4] Luneburg, R. K., Mathematical theory of optics, Brown University, 1944

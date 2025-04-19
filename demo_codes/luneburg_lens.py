@@ -11,7 +11,7 @@ dpml=1.0
 pml_layers=[mp.PML(dpml)]
 
 full_radius = 8
-sources = [mp.Source(mp.ContinuousSource(frequency=1),
+sources = [mp.Source(mp.ContinuousSource(frequency=0.5),
                      component=mp.Ez,
                      center=mp.Vector3(-full_radius,0))]
 
@@ -48,9 +48,9 @@ f = plt.figure(dpi=100)
 Animate = mp.Animate2D(fields=mp.Ez, f=f, realtime=False, normalize=True)
 plt.close()
 
-sim.run(mp.at_every(1, Animate), until=70)
+sim.run(mp.at_every(0.13, Animate), until=70)
 plt.close()
 
 filename = "./Luneburg_lens_animation.mp4"
-Animate.to_mp4(10, filename)
+Animate.to_mp4(30, filename)
 
