@@ -6,7 +6,7 @@ Refraction
 
 In this chapter we show how to simulate refraction in Meep. There are two demos. In the first, one we observe refraction in lens with spherical surface and simulate the intensity of the electric field to estimate the focal length of the lens. The second simulation is about Luneburg Lens.
 
-Demo 1: Refraction in lens
+Demo 1: Refraction through a lens
 ========================== 
 
 First we import the libraries we need in this simulation.
@@ -168,7 +168,7 @@ In this simulation, we have a simple case where only one of the surfaces is sphe
 
     f=\frac{R_{1}}{n-1}
 
-The focal length is the length in the plot where the maximum intensity is reached. There is some error compared to Lens-Maker's equation because Lens-Maker's equation is based on geometrical optics, where Meep does wave optics. Meep takes into account effects such as diffraction, interference, near-field effects, and reflection at the lens' surface. In our simulation the size of lens is only around 10 times the wavelength, so the lens we consider is microscopic, which causes these phenomena to have more effect. There exist microlenses that can have a diameter as small as 10 micrometers [3]. Meep could be used to simulate larger lenses, which could be more meaningful, but the simulation times might grow long. In Meep the legths are defined as fractions, so by keeping the geometry the same and increasing frequency (decreasing wavelength) of the source we can simulate larger lens size. The resolution used in the simulation can limit the accuracy. When increasing the frequency, we need to increase the resolution to keep the results reasonable. Lensmaker's equation assumes paraxial approximation. Thus, the there is more error for thicker lens with smaller radius where the angle of incidence is larger.
+The focal length is the length in the plot where the maximum intensity is reached. There is some error compared to lensmaker's equation because lensmaker's equation is based on geometrical optics, where Meep does wave optics. Meep takes into account effects such as diffraction, interference, near-field effects, and reflection at the lens' surface. In our simulation the size of lens is only around 10 times the wavelength, so the lens we consider is microscopic, which causes these phenomena to have more effect. There exist microlenses that can have a diameter under 1 mm [3]. Meep could be used to simulate larger lenses, which could be more meaningful, but the simulation times might grow long. In Meep the legths are defined as fractions, so by keeping the geometry the same and increasing frequency (decreasing wavelength) of the source we can simulate larger lens size. The resolution used in the simulation can limit the accuracy. When increasing the frequency, we need to increase the resolution to keep the results reasonable. Lensmaker's equation assumes paraxial approximation. Thus, the there is more error for thicker lens with smaller radius where the angle of incidence is larger.
 
 Demo 2: Luneburg lens
 =====================
