@@ -346,7 +346,7 @@ In the imagemagick command, the parameter ``delay`` controls the time between th
 
 .. figure:: waveguide_figures/imagemagick.gif
    :alt: Gif created using imagemagick
-   :width: 85%
+   :width: 50%
    :align: center
 
 There is also another way to create the gif, using only Python. This is better if you again want more control of how the animation looks but this way is significantly slower. At the beginning of the run, we store the waveguide geometry to the file and at every 0.1 timesteps, we also store the :math:`z`-component of the electric field.
