@@ -467,7 +467,7 @@ All in all, we need to do two simulations: one with the straight waveguide and o
 
 Creating a waveguide shape in GDSII format with Python
 ------------------------------------------------------
-Let us begin with defining the desired waveguide shape to a GDSII file. In the first demo, we defined the waveguide geometry within Meep, but that is not always viable, especially with more complex geometries. GDSII is a standard format which is very widely used to define integrated circuit layouts. Hence, there are multiple tools you can use to create the desired shape in this format. For example, a nice way to create these files is a Python library called `gdspy <https://gdspy.readthedocs.io/en/stable/>`_. A good open-source software for inspecting GDSII files is for example `KLayout <https://www.klayout.de>`_. 
+Let us begin with defining the desired waveguide shape to a GDSII file. In the first demo, we defined the waveguide geometry within Meep, but that is not always viable, especially with more complex geometries. GDSII is a standard format which is very widely used to define integrated circuit layouts. Hence, there are multiple tools you can use to create the desired shape in this format. For example, a nice way to create these files is a Python library called `gdspy <https://gdspy.readthedocs.io/en/stable/>`_. A good open-source software for inspecting GDSII files is for example `KLayout <https://www.klayout.de>`_. The code is available on `GitHub <https://github.com/lehtisa/tuni_meep_doc/tree/main/demo_codes/circ_waveguide_part_A>`_
 
 .. note::
    There are also other possibilities to create these kinds of files, for example if you are familiar with AutoCAD, you could save your 2D design as a dxf and convert it to GDSII (for example with Klayout). You should also see another Python library, `GDSFactory <https://gdsfactory.github.io/gdsfactory/index.html>`_. 
@@ -905,7 +905,7 @@ Simulating waveguides with different bend radii
 -----------------------------------------------
 We have now successfully simulated one waveguide but our initial goal was to see how to bend radius affects the losses. Now we expand our treatment to do that. The workflow is very similar to the single waveguide case but we just have to do that with varying bend radius. For that purpose, we will define a function which we can use to simulate one specific case with certain parameters, such as bend radius and wavelength range. 
 
-Let us start a new Python file for this purpose. Of course, we also need to import, define the constants and the functions which generate the GDSII files. Note that we have added here a directory for storing the results so we can analyze the results without running the simulation every time. 
+Let us start a new Python file for this purpose. Of course, we also need to import, define the constants and the functions which generate the GDSII files. Note that we have added here a directory for storing the results so we can analyze the results without running the simulation every time. The code is available on `GitHub <https://github.com/lehtisa/tuni_meep_doc/tree/main/demo_codes/circ_waveguide_part_B>`_
 
 .. code-block:: python
 
@@ -1488,7 +1488,7 @@ Now that we have our results, we can plot them to see what is going on. Let us c
 
 Here we explore the results by plotting transmittance, loss, and reflectance with respect to bend radius in different wavelengths (figures a), b), and c)) and then plotting them with respect to wavelength in different bend radii (figures d), e), and f)). 
 
-We can also visualize the results using a heatmap. Here we want to include all wavelengths which we used in the simulation, not just the few ones like in the figure above. The code is omitted here but it is available in GitHub. 
+We can also visualize the results using a heatmap. Here we want to include all wavelengths which we used in the simulation, not just the few ones like in the figure above. The code is omitted here but it is available on `GitHub <https://github.com/lehtisa/tuni_meep_doc/tree/main/demo_codes/circ_waveguide_part_B>`_. 
 
 .. figure:: waveguide_figures/11_heatmap_transmittance.png
    :alt: Results for multiple wavelengths and bend radii. 
