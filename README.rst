@@ -1,9 +1,8 @@
-Template for the Read the Docs tutorial
-=======================================
+Meep Quick Start Guide
+======================
 
-This GitHub template includes fictional Python library
-with some basic Sphinx docs.
+This Quick Start Guide was made as a part of a physics project work course at Tampere University starting in late 2024. This documentation may get updated later in the future. This Quick Start Guide is based on the offcial Meep documentation available here.
 
-Read the tutorial here:
-
-https://docs.readthedocs.io/en/stable/tutorial/
+.. image:: docs/source/tuni_face.gif
+   :alt: Animated logo
+   :align: center
