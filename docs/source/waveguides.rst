@@ -157,11 +157,24 @@ Now we can specify the time until which the simulation runs and run the simulati
    plt.savefig("1_simulation_setup.pdf")
    sim.run(until=sim_time)
 
-Now that the simulation has run, we can use ``plot2D()`` to see what kind of result we have obtained. Here we need to tell which field and which component we want to see. We'd like to see the :math:`z`-component of the electric field.
+Now that the simulation has run, we can use ``plot2D()`` to see what kind of result we have obtained. Here we need to tell which field and which component we want to see. We'd like to see the :math:`z`-component of the electric field. This time we create a new figure so that we can also make proper labels for :math:`x` and :math:`y` axes. 
 
 .. code-block:: python
     
-   sim.plot2D(fields=mp.Ez)
+   fig = plt.figure()
+   ax = fig.add_subplot(1, 1, 1)
+
+   # Capture the image object returned by sim.plot2D
+   sim.plot2D(
+      fields=mp.Ez,
+      ax=ax,
+      field_parameters={"colorbar": True},
+      colorbar_parameters={"label": "Electric field"},
+   )
+
+   # Label axes
+   ax.set_xlabel(r"$x$ (µm)")
+   ax.set_ylabel(r"$y$ (µm)")
    plt.savefig("2_after_first_run.pdf")
    plt.show()
 
@@ -170,7 +183,7 @@ Now that the simulation has run, we can use ``plot2D()`` to see what kind of res
    :width: 90%
    :align: center
 
-It is nice figure but if you want more control how to figure looks, you could plot it more manually. Here we show one way of extracting the data from the simulation after it has run and visualizing it using Matplotlib. 
+It is nice figure but if you want more control how to figure looks (for example if you'd like a horizontal colorbar), you could plot it more manually. Here we show one way of extracting the data from the simulation after it has run and visualizing it using Matplotlib. 
 
 .. code-block:: python
 
@@ -288,7 +301,7 @@ We see that the results are quite well converged when the resolution is 20 which
 
 Animating the results
 ---------------------
-Even though we are now satisfied with our resolution, we might not be as pleased with only some boring static figures about the end state of our simulation. Let's fix the situation by doing an animation! 
+Even though we are now satisfied with our resolution, we might not be as pleased with only some boring static figures about the end state of our simulation. Let's fix the situation by doing an animation! We will first do the animation using command line tools and then also with Python only. 
 
 Let's get started by redefining the simulation object with a resolution of 20. 
 
@@ -304,9 +317,41 @@ Let's get started by redefining the simulation object with a resolution of 20.
    )
 
 
-To animate the simulation, we naturally need to gather data also during it. This can be done by introduce some *step functions* in our run command. This time we want to store the field data into an h5 file from which we can read the data later. At the beginning of the run, we store the waveguide geometry to the file and at every 0.1 timesteps, we also store the :math:`z`-component of the electric field. Note that we have also reduced the simulation time to avoid an overly long animation.
+To animate the simulation, we naturally need to gather data also during it. This can be done by introduce some *step functions* in our run command. This time we want to store the field data directly to png files and then convert them to a gif as this is the fastest way to animate simulations. We store an image of the field every 0.1 time units. Note also that we have also reduced the simulation time to avoid an overly long animation.
 
 .. code-block:: python
+
+   resolution = 20
+   sim = mp.Simulation(
+      cell_size=cell,
+      boundary_layers=pml_layers,
+      geometry=geometry,
+      sources=sources,
+      resolution=resolution,
+   )
+
+   sim_time = 50
+   output_dir = "out"
+   save_time_step = 0.1
+   sim.use_output_directory(output_dir)
+   sim.run(mp.at_every(save_time_step, mp.output_png(mp.Ez, "-Zc dkbluered")), until=200)
+
+After this, we can use either ``imagemagick`` as in the official documentation or some other tool such as ``gifski`` to convert the png files from the output directory a gif file. Note that from these tools, gifski can be *significantly* faster especially for more images since it is parallelized. For this case, they do the conversion in practically the same time. Note also that you have to make sure these tools are installed on you machine before you can use them. You should open you command terminal in the output directory and use these commands to create a gif (or use some other way to create the gif):
+
+- imagemagick: ``magick -delay 3.33 *.png ez.gif``
+- gifski: ``gifski --fps 30 -o ez.gif *.png``
+
+In the imagemagick command, the parameter ``delay`` controls the time between the frames in hundreths of a second, 3.33 leading to approximately 30 fps. 
+
+.. figure:: waveguide_figures/imagemagick.gif
+   :alt: Gif created using imagemagick
+   :width: 30%
+   :align: center
+
+There is also another way to create the gif, using only Python. This is better if you again want more control of how the animation looks but this way is significantly slower. At the beginning of the run, we store the waveguide geometry to the file and at every 0.1 timesteps, we also store the :math:`z`-component of the electric field.
+
+.. code-block:: python
+
    filename = "sim_data"
    sim_time = 50
    save_time_step = 0.1
