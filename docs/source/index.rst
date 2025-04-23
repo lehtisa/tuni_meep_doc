@@ -7,8 +7,8 @@ This Quick Start Guide was made as a part of a physics project work course at Ta
 
 
 .. figure:: tuni_face.gif
-   :alt: Convergence study
-   :width: 90%
+   :alt: Animated logo
+   :width: 40%
    :align: center
 
 Contents
