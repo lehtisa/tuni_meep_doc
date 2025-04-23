@@ -341,7 +341,7 @@ After this, we can use either ``imagemagick`` as in the official documentation o
 - imagemagick: ``magick -delay 3.33 *.png ez.gif``
 - gifski: ``gifski --fps 30 -o ez.gif *.png``
 
-In the imagemagick command, the parameter ``delay`` controls the time between the frames in hundreths of a second, 3.33 leading to approximately 30 fps. 
+In the imagemagick command, the parameter ``delay`` controls the time between the frames in hundreths of a second, 3.33 leading to approximately 30 fps. After running either of the commands, you should have a file ``ez.gif`` in the output directory. 
 
 .. figure:: waveguide_figures/imagemagick.gif
    :alt: Gif created using imagemagick
