@@ -6,3 +6,4 @@ This Quick Start Guide was made as a part of a physics project work course at Ta
 .. image:: docs/source/tuni_face.gif
    :alt: Animated logo
    :align: center
+   :width: 40%
